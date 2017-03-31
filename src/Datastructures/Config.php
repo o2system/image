@@ -19,7 +19,7 @@ namespace O2System\Image\Datastructures;
  *
  * @package O2System\Parser\Metadata
  */
-class Config extends \O2System\Kernel\Registries\Config
+class Config extends \O2System\Kernel\Datastructures\Config
 {
     /**
      * Config::__construct

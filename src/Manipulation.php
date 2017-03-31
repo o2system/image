@@ -131,9 +131,9 @@ class Manipulation
      *
      * @param \O2System\Image\Datastructures\Config $config
      */
-    public function __construct( Config $config )
+    public function __construct( Config $config = null )
     {
-        $this->config = $config;
+        $this->config = is_null( $config ) ? new Config() : $config;
 
         if ( $this->config->offsetExists( 'driver' ) ) {
             $this->loadDriver( $this->config->driver );
