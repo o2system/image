@@ -57,6 +57,12 @@ Credits
 * Founder and Lead Projects: [Steeven Andrian Salim](http://steevenz.com)
 * Github Pages Designer and Writer: [Teguh Rianto](http://teguhrianto.tk)
 
-Images Example Credits
+Fonts Credits
+-------------
+* Jellyka Saint Andrew's Queen by [Jellyka Neveran](http://www.cuttyfruty.com/enhtml/jellyka.php) used as default signature font.
+* Express Way Regular - Truetype Font by [Typodermic Fonts](http://typodermicfonts.com) used as default copyright font.
+
+Photographs Example Credits
 --------------
 * Kawah Putih by Poniman Mulijadi - Braunberrie Timeless Portraiture
+> All photographs above is used as examples in the script O2System Framework.
