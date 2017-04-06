@@ -15,7 +15,10 @@ namespace O2System\Image\Drivers;
 // ------------------------------------------------------------------------
 
 use O2System\Image\Abstracts\AbstractDriver;
+use O2System\Image\Abstracts\AbstractWatermark;
 use O2System\Image\Dimension;
+use O2System\Image\Watermark\Overlay;
+use O2System\Image\Watermark\Text;
 
 /**
  * Class GdDriver
@@ -43,6 +46,7 @@ class GdDriver extends AbstractDriver
         ini_set( 'gd.jpeg_ignore_warning', 1 );
 
         $mime = $this->sourceImageFile->getMime();
+        $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
 
         switch ( $mime ) {
             case 'image/jpg':
@@ -55,6 +59,7 @@ class GdDriver extends AbstractDriver
                 break;
 
             case 'image/png':
+            case 'image/x-png':
                 $this->sourceImageResource = imagecreatefrompng( $this->sourceImageFile->getRealPath() );
                 break;
         }
@@ -176,14 +181,16 @@ class GdDriver extends AbstractDriver
                 $resizeHeight = round( $sourceDimension->getHeight() * $resampleDimension->getWidth() / $sourceDimension->getWidth() );
             }
 
-            switch ( $resampleDimension->getQuadrant() ) {
+            switch ( $resampleDimension->getFocus() ) {
                 default:
                 case 'CENTER':
                     $sourceDimension = new Dimension(
                         $resizeWidth,
                         $resizeHeight,
-                        ( $sourceDimension->getWidth() - $resizeWidth ) / 2,
-                        ( $sourceDimension->getHeight() - $resizeHeight ) / 2
+                        //( $sourceDimension->getWidth() - $resizeWidth ) / 2,
+                        //( $sourceDimension->getHeight() - $resizeHeight ) / 2
+                        ( $sourceDimension->getWidth() / 2 ) - ( $resizeWidth / 2 ),
+                        ( $sourceDimension->getHeight() / 2 ) - ( $resizeHeight / 2 )
                     );
                     break;
                 case 'NORTH':
@@ -257,8 +264,17 @@ class GdDriver extends AbstractDriver
         $sourceAxis = $sourceDimension->getAxis();
 
         if ( function_exists( 'imagecreatetruecolor' ) ) {
-            $this->resampleImageResource = imagecreatetruecolor( $resampleDimension->getWidth(),
-                $resampleDimension->getHeight() );
+            $this->resampleImageResource = imagecreatetruecolor(
+                $resampleDimension->getWidth(),
+                $resampleDimension->getHeight()
+            );
+
+            imagealphablending( $this->resampleImageResource, false );
+            imagesavealpha( $this->resampleImageResource, true );
+
+            $transparent = imagecolorallocatealpha( $this->resampleImageResource, 255, 255, 255, 127 );
+            imagefilledrectangle( $this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(), $transparent );
 
             return imagecopyresampled(
                 $this->resampleImageResource,
@@ -275,6 +291,13 @@ class GdDriver extends AbstractDriver
         } else {
             $this->resampleImageResource = imagecreate( $resampleDimension->getWidth(),
                 $resampleDimension->getHeight() );
+
+            imagealphablending( $this->resampleImageResource, false );
+            imagesavealpha( $this->resampleImageResource, true );
+
+            $transparent = imagecolorallocatealpha( $this->resampleImageResource, 255, 255, 255, 127 );
+            imagefilledrectangle( $this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(), $transparent );
 
             return imagecopyresized(
                 $this->resampleImageResource,
@@ -309,8 +332,17 @@ class GdDriver extends AbstractDriver
         $sourceAxis = $sourceDimension->getAxis();
 
         if ( function_exists( 'imagecreatetruecolor' ) ) {
-            $this->resampleImageResource = imagecreatetruecolor( $resampleDimension->getWidth(),
-                $resampleDimension->getHeight() );
+            $this->resampleImageResource = imagecreatetruecolor(
+                $resampleDimension->getWidth(),
+                $resampleDimension->getHeight()
+            );
+
+            imagealphablending( $this->resampleImageResource, false );
+            imagesavealpha( $this->resampleImageResource, true );
+
+            $transparent = imagecolorallocatealpha( $this->resampleImageResource, 255, 255, 255, 127 );
+            imagefilledrectangle( $this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(), $transparent );
 
             return imagecopyresampled(
                 $this->resampleImageResource,
@@ -327,6 +359,13 @@ class GdDriver extends AbstractDriver
         } else {
             $this->resampleImageResource = imagecreate( $resampleDimension->getWidth(),
                 $resampleDimension->getHeight() );
+
+            imagealphablending( $this->resampleImageResource, false );
+            imagesavealpha( $this->resampleImageResource, true );
+
+            $transparent = imagecolorallocatealpha( $this->resampleImageResource, 255, 255, 255, 127 );
+            imagefilledrectangle( $this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(), $transparent );
 
             return imagecopyresized(
                 $this->resampleImageResource,
@@ -346,6 +385,246 @@ class GdDriver extends AbstractDriver
     // ------------------------------------------------------------------------
 
     /**
+     * GdDriver::crop
+     *
+     * Crop an image.
+     *
+     * @param \O2System\Image\Dimension $dimension
+     *
+     * @return bool
+     */
+    public function crop( Dimension $dimension )
+    {
+        $resampleImageResource =& $this->getResampleImageResource();
+
+        if ( false !== ( $resampleCropImage = imagecrop( $resampleImageResource, [
+                'x'      => $dimension->getAxis()->getX(),
+                'y'      => $dimension->getAxis()->getY(),
+                'width'  => $dimension->getWidth(),
+                'height' => $dimension->getHeight(),
+            ] ) )
+        ) {
+            $resampleImageResource = $resampleCropImage;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * GdDriver::watermark
+     *
+     * Watermark an image.
+     *
+     * @param \O2System\Image\Abstracts\AbstractWatermark $watermark
+     *
+     * @return bool
+     */
+    public function watermark( AbstractWatermark $watermark )
+    {
+        $resampleImageResource =& $this->getResampleImageResource();
+
+        if ( $watermark instanceof Text ) {
+            $textBox = imagettfbbox( $watermark->getFontSize(), $watermark->getAngle(), $watermark->getFontPath(),
+                $watermark->getString() );
+
+            if ( $textBox[ 0 ] < 0 and $textBox[ 6 ] ) {
+                $textBox[ 1 ] += $textBox[ 0 ];
+                $textBox[ 3 ] += $textBox[ 0 ];
+                $textBox[ 5 ] += $textBox[ 0 ];
+                $textBox[ 7 ] += $textBox[ 0 ];
+            }
+
+            $textBox = array_map( 'abs', $textBox );
+
+            $watermarkImageWidth = max( $textBox[ 0 ], $textBox[ 2 ], $textBox[ 4 ], $textBox[ 6 ] );
+            $watermarkImageHeight = max( $textBox[ 1 ], $textBox[ 3 ], $textBox[ 5 ], $textBox[ 7 ] );
+
+            if ( false !== ( $watermarkAxis = $watermark->getAxis() ) ) {
+                $watermarkImageAxisX = $watermarkAxis->getX();
+                $watermarkImageAxisY = $watermarkAxis->getY();
+            } else {
+                switch ( $watermark->getPosition() ) {
+                    default:
+                    case 'MIDDLE_MIDDLE':
+                    case 'MIDDLE':
+                    case 'CENTER':
+                        $watermarkImageAxisX = ( imagesx( $resampleImageResource ) - $watermarkImageWidth ) / 2;
+                        $watermarkImageAxisY = ( imagesy( $resampleImageResource ) - $watermarkImageHeight ) / 2;
+                        break;
+
+                    case 'MIDDLE_LEFT':
+                        $watermarkImageAxisX = $watermark->getPadding();
+                        $watermarkImageAxisY = ( imagesy( $resampleImageResource ) - $watermarkImageHeight ) / 2;
+                        break;
+
+                    case 'MIDDLE_RIGHT':
+                        $watermarkImageAxisX = imagesx( $resampleImageResource ) - ( $watermarkImageWidth + $watermark->getPadding() );
+                        $watermarkImageAxisY = ( imagesy( $resampleImageResource ) - $watermarkImageHeight ) / 2;
+                        break;
+
+                    case 'MIDDLE_TOP':
+                        $watermarkImageAxisX = ( imagesx( $resampleImageResource ) - $watermarkImageWidth ) / 2;
+                        $watermarkImageAxisY = $watermarkImageHeight + $watermark->getPadding();
+                        break;
+
+                    case 'MIDDLE_BOTTOM':
+                        $watermarkImageAxisX = ( imagesx( $resampleImageResource ) - $watermarkImageWidth ) / 2;
+                        $watermarkImageAxisY = imagesy( $resampleImageResource ) - ( $watermarkImageHeight + $watermark->getPadding() );
+                        break;
+
+                    case 'TOP_LEFT':
+                        $watermarkImageAxisX = $watermark->getPadding();
+                        $watermarkImageAxisY = $watermarkImageHeight + $watermark->getPadding();
+                        break;
+
+                    case 'TOP_RIGHT':
+                        $watermarkImageAxisX = imagesx( $resampleImageResource ) - ( $watermarkImageWidth + $watermark->getPadding() );
+                        $watermarkImageAxisY = $watermarkImageHeight + $watermark->getPadding();
+                        break;
+
+                    case 'BOTTOM_LEFT':
+                        $watermarkImageAxisX = $watermark->getPadding();
+                        $watermarkImageAxisY = imagesy( $resampleImageResource ) - $watermarkImageHeight + $watermark->getPadding();
+                        break;
+
+                    case 'BOTTOM_RIGHT':
+                        $watermarkImageAxisX = imagesx( $resampleImageResource ) - ( $watermarkImageWidth + $watermark->getPadding() );
+                        $watermarkImageAxisY = imagesy( $resampleImageResource ) - ( $watermarkImageHeight + $watermark->getPadding() );
+                        break;
+                }
+            }
+
+            /* Set RGB values for text
+             *
+             * First character is #, so we don't really need it.
+             * Get the rest of the string and split it into 2-length
+             * hex values:
+             */
+            $textColor = str_split( substr( $watermark->getFontColor(), 1, 6 ), 2 );
+            $textColor = imagecolorclosest( $resampleImageResource, hexdec( $textColor[ 0 ] ),
+                hexdec( $textColor[ 1 ] ),
+                hexdec( $textColor[ 2 ] ) );
+
+            imagettftext(
+                $resampleImageResource,
+                $watermark->getFontSize(),
+                $watermark->getAngle(),
+                $watermarkImageAxisX,
+                $watermarkImageAxisY,
+                $textColor,
+                $watermark->getFontPath(),
+                $watermark->getString()
+            );
+
+            return true;
+        } elseif ( $watermark instanceof Overlay ) {
+
+            $watermarkImage = new self;
+            $watermarkImage->setSourceImage( $watermark->getImagePath() );
+            $watermarkImage->createFromSource();
+
+            $watermarkImageFile = $watermarkImage->getSourceImageFile();
+            $watermarkImageDimension = $watermarkImageFile->getDimension();
+            $watermarkImageDimension->maintainAspectRatio = true;
+
+            if ( false === ( $scale = $watermark->getImageScale() ) ) {
+                $scale = min(
+                    round( ( ( imagesx( $resampleImageResource ) / 2 ) / $watermarkImageDimension->getWidth() ) * 100 ),
+                    round( ( ( imagesy( $resampleImageResource ) / 2 ) / $watermarkImageDimension->getHeight() ) * 100 )
+                );
+            }
+
+            if( $scale > 0 ) {
+                $watermarkImage->setResampleImage( $watermarkImageFile->withDimension(
+                    $watermarkImageDimension
+                        ->withScale( $scale )
+                ) );
+            }
+
+            if ( $watermarkImage->scale() ) {
+                $watermarkImageResource = $watermarkImage->getResampleImageResource();
+
+                $watermarkImageWidth = imagesx( $watermarkImageResource );
+                $watermarkImageHeight = imagesy( $watermarkImageResource );
+
+                if ( false !== ( $watermarkAxis = $watermark->getAxis() ) ) {
+                    $watermarkImageAxisX = $watermarkAxis->getX();
+                    $watermarkImageAxisY = $watermarkAxis->getY();
+                } else {
+                    switch ( $watermark->getPosition() ) {
+                        default:
+                        case 'MIDDLE_MIDDLE':
+                        case 'MIDDLE':
+                        case 'CENTER':
+                            $watermarkImageAxisX = ( imagesx( $resampleImageResource ) - $watermarkImageWidth ) / 2;
+                            $watermarkImageAxisY = ( imagesy( $resampleImageResource ) - $watermarkImageHeight ) / 2;
+                            break;
+
+                        case 'MIDDLE_LEFT':
+                            $watermarkImageAxisX = $watermark->getPadding();
+                            $watermarkImageAxisY = ( imagesy( $resampleImageResource ) - $watermarkImageHeight ) / 2;
+                            break;
+
+                        case 'MIDDLE_RIGHT':
+                            $watermarkImageAxisX = imagesx( $resampleImageResource ) - ( $watermarkImageWidth + $watermark->getPadding() );
+                            $watermarkImageAxisY = ( imagesy( $resampleImageResource ) - $watermarkImageHeight ) / 2;
+                            break;
+
+                        case 'MIDDLE_TOP':
+                            $watermarkImageAxisX = ( imagesx( $resampleImageResource ) - $watermarkImageWidth ) / 2;
+                            $watermarkImageAxisY = $watermarkImageHeight + $watermark->getPadding();
+                            break;
+
+                        case 'MIDDLE_BOTTOM':
+                            $watermarkImageAxisX = ( imagesx( $resampleImageResource ) - $watermarkImageWidth ) / 2;
+                            $watermarkImageAxisY = imagesy( $resampleImageResource ) - ( $watermarkImageHeight + $watermark->getPadding() );
+                            break;
+
+                        case 'TOP_LEFT':
+                            $watermarkImageAxisX = $watermark->getPadding();
+                            $watermarkImageAxisY = $watermarkImageHeight + $watermark->getPadding();
+                            break;
+
+                        case 'TOP_RIGHT':
+                            $watermarkImageAxisX = imagesx( $resampleImageResource ) - ( $watermarkImageWidth + $watermark->getPadding() );
+                            $watermarkImageAxisY = $watermarkImageHeight + $watermark->getPadding();
+                            break;
+
+                        case 'BOTTOM_LEFT':
+                            $watermarkImageAxisX = $watermark->getPadding();
+                            $watermarkImageAxisY = imagesy( $resampleImageResource ) - $watermarkImageHeight + $watermark->getPadding();
+                            break;
+
+                        case 'BOTTOM_RIGHT':
+                            $watermarkImageAxisX = imagesx( $resampleImageResource ) - ( $watermarkImageWidth + $watermark->getPadding() );
+                            $watermarkImageAxisY = imagesy( $resampleImageResource ) - ( $watermarkImageHeight + $watermark->getPadding() );
+                            break;
+                    }
+                }
+
+                return imagecopy(
+                    $resampleImageResource,
+                    $watermarkImageResource,
+                    $watermarkImageAxisX,
+                    $watermarkImageAxisY,
+                    0,
+                    0,
+                    imagesx( $watermarkImageResource ),
+                    imagesy( $watermarkImageResource )
+                );
+            }
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * GdDriver::display
      *
      * Display an image.
@@ -360,7 +639,10 @@ class GdDriver extends AbstractDriver
 
         $resampleImageResource =& $this->getResampleImageResource();
 
-        switch ( $this->sourceImageFile->getMime() ) {
+        $mime = $this->sourceImageFile->getMime();
+        $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
+
+        switch ( $mime ) {
             case 'image/jpg':
             case 'image/jpeg':
                 header( 'Content-Type: image/jpeg' );
@@ -373,6 +655,7 @@ class GdDriver extends AbstractDriver
                 break;
 
             case 'image/png':
+            case 'image/x-png':
                 header( 'Content-Type: image/png' );
                 imagealphablending( $resampleImageResource, false );
                 imagesavealpha( $resampleImageResource, true );
@@ -381,6 +664,46 @@ class GdDriver extends AbstractDriver
         }
 
         exit( EXIT_SUCCESS );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * GdDriver::blob
+     *
+     * Returns image as string blob.
+     *
+     * @return string
+     */
+    public function blob( $quality = 100 )
+    {
+        $resampleImageResource =& $this->getResampleImageResource();
+
+        $mime = $this->sourceImageFile->getMime();
+        $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
+
+        ob_start();
+        switch ( $mime ) {
+            case 'image/jpg':
+            case 'image/jpeg':
+                imagejpeg( $resampleImageResource, null, $quality );
+                break;
+
+            case 'image/gif':
+                imagegif( $resampleImageResource );
+                break;
+
+            case 'image/png':
+            case 'image/x-png':
+                imagealphablending( $resampleImageResource, false );
+                imagesavealpha( $resampleImageResource, true );
+                imagepng( $resampleImageResource );
+                break;
+        }
+        $imageBlob = ob_get_contents();
+        ob_end_clean();
+
+        return $imageBlob;
     }
 
     // ------------------------------------------------------------------------
@@ -399,7 +722,11 @@ class GdDriver extends AbstractDriver
     {
         $resampleImageResource =& $this->getResampleImageResource();
 
-        switch ( $this->sourceImageFile->getMime() ) {
+        $mime = $this->sourceImageFile->getMime();
+        $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
+
+
+        switch ( $mime ) {
             case 'image/jpg':
             case 'image/jpeg':
                 return (bool)@imagejpeg( $resampleImageResource, $imageTargetFilePath, $quality );
@@ -410,6 +737,7 @@ class GdDriver extends AbstractDriver
                 break;
 
             case 'image/png':
+            case 'image/x-png':
                 imagealphablending( $resampleImageResource, false );
                 imagesavealpha( $resampleImageResource, true );
 

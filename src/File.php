@@ -19,7 +19,7 @@ use O2System\Spl\Datastructures\SplArrayObject;
 /**
  * Class File
  *
- * @package O2System\Image\Registries
+ * @package O2System\Image\Datastructures
  */
 class File extends \O2System\Filesystem\File
 {
@@ -74,7 +74,7 @@ class File extends \O2System\Filesystem\File
         if ( false !== ( $imageSize = getimagesize( $filePath ) ) ) {
             $this->dimension = new Dimension( $imageSize[ 0 ], $imageSize[ 1 ] );
             $this->bits = $imageSize[ 'bits' ];
-            $this->channels = $imageSize[ 'channels' ];
+            $this->channels = isset( $imageSize[ 'channels' ] ) ? $imageSize[ 'channels' ] : 0;
             $this->type = $imageSize[ 2 ];
         }
     }
@@ -163,8 +163,7 @@ class File extends \O2System\Filesystem\File
      */
     public function getExif()
     {
-        if( false !== ( $exifData = exif_read_data( $this->getRealPath() ) ) )
-        {
+        if ( false !== ( $exifData = exif_read_data( $this->getRealPath() ) ) ) {
             return new SplArrayObject( $exifData );
         }
 

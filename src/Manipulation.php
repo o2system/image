@@ -15,6 +15,7 @@ namespace O2System\Image;
 // ------------------------------------------------------------------------
 
 use O2System\Image\Abstracts\AbstractDriver;
+use O2System\Image\Abstracts\AbstractWatermark;
 use O2System\Image\Datastructures\Config;
 use O2System\Spl\Exceptions\Runtime\FileNotFoundException;
 
@@ -105,6 +106,87 @@ class Manipulation
      * @var string
      */
     const ORIENTATION_SQUARE = 'SQUARE';
+
+    /**
+     * Manipulation::WATERMARK_CENTER
+     *
+     * Watermark center position.
+     *
+     * @var string
+     */
+    const WATERMARK_CENTER = 'CENTER';
+
+    /**
+     * Manipulation::WATERMARK_MIDDLE_LEFT
+     *
+     * Watermark middle left position.
+     *
+     * @var string
+     */
+    const WATERMARK_MIDDLE_LEFT = 'MIDDLE_LEFT';
+
+    /**
+     * Manipulation::WATERMARK_MIDDLE_RIGHT
+     *
+     * Watermark middle right position.
+     *
+     * @var string
+     */
+    const WATERMARK_MIDDLE_RIGHT = 'MIDDLE_RIGHT';
+
+    /**
+     * Manipulation::WATERMARK_MIDDLE_TOP
+     *
+     * Watermark middle top position.
+     *
+     * @var string
+     */
+    const WATERMARK_MIDDLE_TOP = 'MIDDLE_TOP';
+
+    /**
+     * Manipulation::WATERMARK_MIDDLE_BOTTOM
+     *
+     * Watermark middle bottom position.
+     *
+     * @var string
+     */
+    const WATERMARK_MIDDLE_BOTTOM = 'MIDDLE_BOTTOM';
+
+    /**
+     * Manipulation::WATERMARK_TOP_LEFT
+     *
+     * Watermark top left position.
+     *
+     * @var string
+     */
+    const WATERMARK_TOP_LEFT = 'TOP_LEFT';
+
+    /**
+     * Manipulation::WATERMARK_TOP_RIGHT
+     *
+     * Watermark top right position.
+     *
+     * @var string
+     */
+    const WATERMARK_TOP_RIGHT = 'TOP_RIGHT';
+
+    /**
+     * Manipulation::WATERMARK_BOTTOM_LEFT
+     *
+     * Watermark bottom left position.
+     *
+     * @var string
+     */
+    const WATERMARK_BOTTOM_LEFT = 'BOTTOM_LEFT';
+
+    /**
+     * Manipulation::WATERMARK_BOTTOM_RIGHT
+     *
+     * Watermark bottom right position.
+     *
+     * @var string
+     */
+    const WATERMARK_BOTTOM_RIGHT = 'BOTTOM_RIGHT';
 
     /**
      * Manipulation::$config
@@ -306,11 +388,6 @@ class Manipulation
      *
      * @param int    $newWidth    The width to scale the image to.
      * @param int    $newHeight   The height to scale the image to.
-     * @param string $orientation Supported image orientation:
-     *                            1. AUTO
-     *                            2. LANDSCAPE
-     *                            3. PORTRAIT
-     *                            4. SQUARE
      *
      * @return bool
      */
@@ -365,6 +442,21 @@ class Manipulation
     }
 
     // ------------------------------------------------------------------------
+
+    public function watermarkImage( AbstractWatermark $watermark )
+    {
+        $this->driver->watermark( $watermark );
+    }
+
+    public function cropImage( Dimension $dimension )
+    {
+        $this->driver->crop( $dimension );
+    }
+
+    public function getBlobImage()
+    {
+        return $this->driver->blob( $this->config->offsetGet('quality') );
+    }
 
     /**
      * Manipulation::displayImage

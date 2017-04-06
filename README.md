@@ -7,7 +7,6 @@ O2System Image is a PHP image handling and manipulation library for O2System Fra
 | GD2 | ```Yes``` | ```Yes``` | http://php.net/image |
 | GMagick | ```Yes``` | ```Yes``` | http://php.net/gmagick |
 | ImageMagick | ```Yes``` | ```Yes``` | http://php.net/imagemagick |
-| NetPBM | ```Yes``` | ```Yes``` | -|
 
 Installation
 ------------

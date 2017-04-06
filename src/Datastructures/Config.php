@@ -31,7 +31,7 @@ class Config extends \O2System\Kernel\Datastructures\Config
         $defaultConfig = [
             'driver'              => 'gmagick',
             'maintainAspectRatio' => true,
-            'focus'               => 'CENTER',
+            'focus'               => 'NORTHWEST',
             'orientation'         => 'AUTO',
             'quality'             => 100,
             'cached'              => false,

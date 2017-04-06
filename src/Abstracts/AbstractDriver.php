@@ -59,6 +59,15 @@ abstract class AbstractDriver
      */
     protected $resampleImageFile;
 
+    /**
+     * AbstractDriver::$errors
+     *
+     * Library errors list.
+     *
+     * @var array
+     */
+    protected $errors = [];
+
     // ------------------------------------------------------------------------
 
     /**
@@ -163,6 +172,52 @@ abstract class AbstractDriver
     // ------------------------------------------------------------------------
 
     /**
+     * AbstractDriver::hasErrors
+     *
+     * Gets library image errors.
+     *
+     * @return bool
+     */
+    public function hasErrors()
+    {
+        if( count( $this->errors ) ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractDriver::getErrors
+     *
+     * Gets library image errors.
+     *
+     * @return array
+     */
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractDriver::getTotalErrors
+     *
+     * Gets library image errors.
+     *
+     * @return bool
+     */
+    public function getTotalErrors()
+    {
+        return count( $this->errors );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * AbstractDriver::createFromSource
      *
      * Create an image resource from source file.
@@ -242,6 +297,17 @@ abstract class AbstractDriver
      * @return void
      */
     abstract public function display( $quality = 100 );
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractDriver::blob
+     *
+     * Return an image as blob string.
+     *
+     * @return string
+     */
+    abstract public function blob( $quality = 100 );
 
     // ------------------------------------------------------------------------
 

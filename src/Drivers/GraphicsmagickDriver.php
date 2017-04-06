@@ -15,7 +15,10 @@ namespace O2System\Image\Drivers;
 // ------------------------------------------------------------------------
 
 use O2System\Image\Abstracts\AbstractDriver;
+use O2System\Image\Abstracts\AbstractWatermark;
 use O2System\Image\Dimension;
+use O2System\Image\Watermark\Overlay;
+use O2System\Image\Watermark\Text;
 
 /**
  * Class GraphicsmagickDriver
@@ -45,12 +48,25 @@ class GraphicsmagickDriver extends AbstractDriver
      *
      * @param string $imageString Image string.
      *
-     * @return void
+     * @return bool
      */
     public function createFromString( $imageString )
     {
         $this->sourceImageResource = new \Gmagick();
-        $this->sourceImageResource->readimageblob( $imageString );
+
+        try {
+
+            $this->sourceImageResource->readimageblob( $imageString );
+
+            return true;
+
+        } catch ( \GmagickException $e ) {
+
+            $this->errors[ $e->getCode() ] = $e->getMessage();
+
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -62,12 +78,73 @@ class GraphicsmagickDriver extends AbstractDriver
      *
      * @param float $degrees Image rotation degrees.
      *
-     * @return void
+     * @return bool
      */
     public function rotate( $degrees )
     {
         $resampleImageResource =& $this->getResampleImageResource();
-        $resampleImageResource->rotateimage( '#000000', $degrees );
+
+        try {
+
+            $resampleImageResource->rotateimage( '#000000', $degrees );
+
+            return true;
+
+        } catch ( \GmagickException $e ) {
+
+            $this->errors[ $e->getCode() ] = $e->getMessage();
+
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * GraphicsmagickDriver::flip
+     *
+     * Flip an image with a given axis.
+     *
+     * @param int $axis Flip axis.
+     *
+     * @return bool
+     */
+    public function flip( $axis )
+    {
+        $gdAxis = [
+            1 => IMG_FLIP_HORIZONTAL,
+            2 => IMG_FLIP_VERTICAL,
+            3 => IMG_FLIP_BOTH,
+        ];
+
+        if ( array_key_exists( $axis, $gdAxis ) ) {
+            $resampleImageResource =& $this->getResampleImageResource();
+
+            try {
+                switch ( $axis ) {
+                    case 1:
+                        $resampleImageResource->flopimage();
+                        break;
+                    case 2:
+                        $resampleImageResource->flipimage();
+                        break;
+                    case 3:
+                        $resampleImageResource->flopimage();
+                        $resampleImageResource->flipimage();
+                        break;
+                }
+
+                return true;
+
+            } catch ( \GmagickException $e ) {
+
+                $this->errors[ $e->getCode() ] = $e->getMessage();
+
+            }
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
@@ -98,13 +175,24 @@ class GraphicsmagickDriver extends AbstractDriver
         $resampleImageResource =& $this->getResampleImageResource();
 
         if ( $resampleDimension->getOrientation() === 'SQUARE' ) {
-            $resampleImageResource->resizeimage( $resizeWidth, $resizeHeight, \Gmagick::FILTER_LANCZOS, 0.9, false );
-            $resampleAxis = new Dimension\Axis(
-                ( $resizeWidth - $resampleDimension->getWidth() ) / 2,
-                ( $resizeHeight - $resampleDimension->getWidth() ) / 2
-            );
+
+            try {
+
+                $resampleImageResource->resizeimage( $resizeWidth, $resizeHeight, \Gmagick::FILTER_LANCZOS, 0.9, false );
+                $resampleAxis = new Dimension\Axis(
+                    ( $resizeWidth - $resampleDimension->getWidth() ) / 2,
+                    ( $resizeHeight - $resampleDimension->getWidth() ) / 2
+                );
+
+            } catch ( \GmagickException $e ) {
+
+                $this->errors[ $e->getCode() ] = $e->getMessage();
+
+                return false;
+
+            }
         } else {
-            switch ( $resampleDimension->getQuadrant() ) {
+            switch ( $resampleDimension->getFocus() ) {
                 default:
                 case 'CENTER':
                     $resampleAxis = new Dimension\Axis(
@@ -162,15 +250,19 @@ class GraphicsmagickDriver extends AbstractDriver
                     break;
             }
 
-            $resampleImageResource->resizeimage( $sourceDimension->getWidth(), $sourceDimension->getHeight(), \Gmagick::FILTER_CATROM, 0.9, true );
+            try {
+
+                $resampleImageResource->resizeimage( $sourceDimension->getWidth(), $sourceDimension->getHeight(),
+                    \Gmagick::FILTER_CATROM, 0.9, true );
+
+            } catch ( \GmagickException $e ) {
+
+                $this->errors[ $e->getCode() ] = $e->getMessage();
+
+            }
         }
 
-        return $resampleImageResource->cropimage(
-            $resampleDimension->getWidth(),
-            $resampleDimension->getHeight(),
-            $resampleAxis->getX(),
-            $resampleAxis->getY()
-        );
+        return $this->crop( $resampleDimension->withAxis( $resampleAxis ) );
     }
 
     // ------------------------------------------------------------------------
@@ -187,48 +279,246 @@ class GraphicsmagickDriver extends AbstractDriver
         $resampleDimension = $this->resampleImageFile->getDimension();
         $resampleImageResource =& $this->getResampleImageResource();
 
-        return $resampleImageResource->scaleimage( $resampleDimension->getWidth(), $resampleDimension->getHeight(), true );
+        try {
+
+            $resampleImageResource->scaleimage(
+                $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(),
+                true
+            );
+
+            return true;
+
+        } catch ( \GmagickException $e ) {
+
+            $this->errors[ $e->getCode() ] = $e->getMessage();
+
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
 
     /**
-     * GraphicsmagickDriver::flip
+     * GraphicsmagickDriver::crop
      *
-     * Flip an image with a given axis.
+     * Crop an image.
      *
-     * @param int $axis Flip axis.
+     * @param \O2System\Image\Dimension $dimension
      *
-     * @return void
+     * @return bool
      */
-    public function flip( $axis )
+    public function crop( Dimension $dimension )
     {
-        $gdAxis = [
-            1 => IMG_FLIP_HORIZONTAL,
-            2 => IMG_FLIP_VERTICAL,
-            3 => IMG_FLIP_BOTH,
-        ];
+        $resampleImageResource =& $this->getResampleImageResource();
 
-        if ( array_key_exists( $axis, $gdAxis ) ) {
-            $resampleImageResource =& $this->getResampleImageResource();
+        try {
 
-            switch ( $axis )
-            {
-                case 1:
-                    $resampleImageResource->flopImage();
-                    break;
-                case 2:
-                    $resampleImageResource->flipImage();
-                    break;
-                case 3:
-                    $resampleImageResource->flopImage();
-                    $resampleImageResource->flipImage();
-                    break;
-            }
+            $resampleImageResource->cropimage(
+                $dimension->getWidth(),
+                $dimension->getHeight(),
+                $dimension->getAxis()->getX(),
+                $dimension->getAxis()->getY()
+            );
+
+            return true;
+
+        } catch ( \GmagickException $e ) {
+
+            $this->errors[ $e->getCode() ] = $e->getMessage();
+
         }
+
+        return false;
     }
 
     // ------------------------------------------------------------------------
+
+    /**
+     * ImagemagickDriver::watermark
+     *
+     * Watermark an image.
+     *
+     * @param \O2System\Image\Abstracts\AbstractWatermark $watermark
+     *
+     * @return bool
+     */
+    public function watermark( AbstractWatermark $watermark )
+    {
+        $resampleImageResource =& $this->getResampleImageResource();
+
+        if ( $watermark instanceof Text ) {
+
+            $draw = new \GmagickDraw();
+            $draw->setFont( $watermark->getFontPath() );
+            $draw->setFontSize( $watermark->getFontSize() );
+            $draw->setFillColor( $watermark->getFontColor() );
+
+            if ( false !== ( $textAxis = $watermark->getAxis() ) ) {
+                $draw->annotation( $textAxis->getX(), $textAxis->getY(), $watermark->getString() );
+            } else {
+                switch ( $watermark->getPosition() ) {
+                    default:
+                    case 'MIDDLE_MIDDLE':
+                    case 'MIDDLE':
+                    case 'CENTER':
+                        $draw->setgravity( \Gmagick::GRAVITY_CENTER );
+                        break;
+
+                    case 'MIDDLE_LEFT':
+                        $draw->setgravity( \Gmagick::GRAVITY_WEST );
+                        break;
+
+                    case 'MIDDLE_RIGHT':
+                        $draw->setgravity( \Gmagick::GRAVITY_EAST );
+                        break;
+
+                    case 'MIDDLE_TOP':
+                        $draw->setgravity( \Gmagick::GRAVITY_NORTH );
+                        break;
+
+                    case 'MIDDLE_BOTTOM':
+                        $draw->setgravity( \Gmagick::GRAVITY_SOUTH );
+                        break;
+
+                    case 'TOP_LEFT':
+                        $draw->setgravity( \Gmagick::GRAVITY_NORTHWEST );
+                        break;
+
+                    case 'TOP_RIGHT':
+                        $draw->setgravity( \Gmagick::GRAVITY_NORTHEAST );
+                        break;
+
+                    case 'BOTTOM_LEFT':
+                        $draw->setgravity( \Gmagick::GRAVITY_SOUTHWEST );
+                        break;
+
+                    case 'BOTTOM_RIGHT':
+                        $draw->setgravity( \Gmagick::GRAVITY_SOUTHEAST );
+                        break;
+                }
+            }
+
+            try {
+
+                $resampleImageResource->annotateimage(
+                    $draw,
+                    $watermark->getPadding(),
+                    $watermark->getPadding(),
+                    $watermark->getAngle(),
+                    $watermark->getString()
+                );
+
+                return true;
+
+            } catch ( \GmagickException $e ) {
+
+                $this->errors[ $e->getCode() ] = $e->getMessage();
+
+            }
+        } elseif ( $watermark instanceof Overlay ) {
+            $watermarkImage = new self;
+            $watermarkImage->setSourceImage( $watermark->getImagePath() );
+            $watermarkImage->createFromSource();
+
+            $watermarkImageFile = $watermarkImage->getSourceImageFile();
+            $watermarkImageDimension = $watermarkImageFile->getDimension();
+            $watermarkImageDimension->maintainAspectRatio = true;
+
+            $resampleImageDimension = $this->resampleImageFile->getDimension();
+
+            if ( false === ( $scale = $watermark->getImageScale() ) ) {
+                $scale = min(
+                    round( ( ( $resampleImageDimension->getWidth() / 2 ) / $watermarkImageDimension->getWidth() ) * 100 ),
+                    round( ( ( $resampleImageDimension->getHeight() / 2 ) / $watermarkImageDimension->getHeight() ) * 100 )
+                );
+            }
+
+            if ( $scale > 0 ) {
+                $watermarkImage->setResampleImage( $watermarkImageFile->withDimension(
+                    $watermarkImageDimension
+                        ->withScale( $scale )
+                ) );
+            }
+
+            $watermarkImageDimension = $watermarkImage->getResampleImageFile()->getDimension();
+
+            if ( $watermarkImage->scale() ) {
+                $watermarkImageResource = $watermarkImage->getResampleImageResource();
+
+                if ( false !== ( $watermarkAxis = $watermark->getAxis() ) ) {
+                    $watermarkImageAxisX = $watermarkAxis->getX();
+                    $watermarkImageAxisY = $watermarkAxis->getY();
+                } else {
+                    switch ( $watermark->getPosition() ) {
+                        default:
+                        case 'MIDDLE_MIDDLE':
+                        case 'MIDDLE':
+                        case 'CENTER':
+                            $watermarkImageAxisX = ( $resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth() ) / 2;
+                            $watermarkImageAxisY = ( $resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight() ) / 2;
+                            break;
+
+                        case 'MIDDLE_LEFT':
+                            $watermarkImageAxisX = $watermark->getPadding();
+                            $watermarkImageAxisY = ( $resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight() ) / 2;
+                            break;
+
+                        case 'MIDDLE_RIGHT':
+                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ( $watermarkImageDimension->getWidth() + $watermark->getPadding() );
+                            $watermarkImageAxisY = ( $resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight() ) / 2;
+                            break;
+
+                        case 'MIDDLE_TOP':
+                            $watermarkImageAxisX = ( $resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth() ) / 2;
+                            $watermarkImageAxisY = $watermarkImageDimension->getHeight() + $watermark->getPadding();
+                            break;
+
+                        case 'MIDDLE_BOTTOM':
+                            $watermarkImageAxisX = ( $resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth() ) / 2;
+                            $watermarkImageAxisY = $resampleImageDimension->getHeight() - ( $watermarkImageDimension->getHeight() + $watermark->getPadding() );
+                            break;
+
+                        case 'TOP_LEFT':
+                            $watermarkImageAxisX = $watermark->getPadding();
+                            $watermarkImageAxisY = $watermarkImageDimension->getHeight() + $watermark->getPadding();
+                            break;
+
+                        case 'TOP_RIGHT':
+                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ( $watermarkImageDimension->getWidth() + $watermark->getPadding() );
+                            $watermarkImageAxisY = $watermarkImageDimension->getHeight() + $watermark->getPadding();
+                            break;
+
+                        case 'BOTTOM_LEFT':
+                            $watermarkImageAxisX = $watermark->getPadding();
+                            $watermarkImageAxisY = $resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight() + $watermark->getPadding();
+                            break;
+
+                        case 'BOTTOM_RIGHT':
+                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ( $watermarkImageDimension->getWidth() + $watermark->getPadding() );
+                            $watermarkImageAxisY = $resampleImageDimension->getHeight() - ( $watermarkImageDimension->getHeight() + $watermark->getPadding() );
+                            break;
+                    }
+                }
+
+                try {
+                    $resampleImageResource->compositeimage( $watermarkImageResource, \Gmagick::COMPOSITE_OVER,
+                        $watermarkImageAxisX,
+                        $watermarkImageAxisY );
+
+                    return true;
+                } catch ( \GmagickException $e ) {
+                    $this->errors[ $e->getCode() ] = $e->getMessage();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
 
     /**
      * GraphicsmagickDriver::display
@@ -244,14 +534,32 @@ class GraphicsmagickDriver extends AbstractDriver
         header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
         header( 'Content-Type: ' . $this->sourceImageFile->getMime() );
 
-        if( $this->save( $tempImageFilePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $this->sourceImageFile->getBasename(), $quality ) ) {
+        echo $this->blob( $quality );
+
+        exit( 0 );
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * ImagemagickDriver::blob
+     *
+     * Returns image string blob.
+     *
+     * @return string
+     */
+    public function blob( $quality = 100 )
+    {
+        $imageBlob = '';
+
+        if ( $this->save( $tempImageFilePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $this->sourceImageFile->getBasename(),
+            $quality )
+        ) {
             $imageBlob = readfile( $tempImageFilePath );
             unlink( $tempImageFilePath );
-
-            echo $imageBlob;
-
-            exit( EXIT_SUCCESS );
         }
+
+        return $imageBlob;
     }
 
     // ------------------------------------------------------------------------
@@ -271,6 +579,18 @@ class GraphicsmagickDriver extends AbstractDriver
         $resampleImageResource =& $this->getResampleImageResource();
         $resampleImageResource->setCompressionQuality( $quality );
 
-        return (bool)$resampleImageResource->writeimage( $imageTargetFilePath );
+        try {
+
+            $resampleImageResource->writeimage( $imageTargetFilePath );
+
+            return true;
+
+        } catch ( \GmagickException $e ) {
+
+            $this->errors[ $e->getCode() ] = $e->getMessage();
+
+        }
+
+        return false;
     }
 }
