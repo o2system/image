@@ -29,7 +29,7 @@ class Config extends \O2System\Kernel\Datastructures\Config
     public function __construct( array $config = [] )
     {
         $defaultConfig = [
-            'driver'              => 'gmagick',
+            'driver'              => 'gd', // gd | imagick | gmagick
             'maintainAspectRatio' => true,
             'focus'               => 'NORTHWEST',
             'orientation'         => 'AUTO',

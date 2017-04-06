@@ -443,20 +443,47 @@ class Manipulation
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Manipulation::watermarkImage
+     *
+     * Watermark an image using Text or Overlay.
+     *
+     * @param \O2System\Image\Abstracts\AbstractWatermark $watermark
+     */
     public function watermarkImage( AbstractWatermark $watermark )
     {
         $this->driver->watermark( $watermark );
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Manipulation::cropImage
+     *
+     * Crop an image using new Dimension.
+     *
+     * @param \O2System\Image\Dimension $dimension
+     */
     public function cropImage( Dimension $dimension )
     {
         $this->driver->crop( $dimension );
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Manipulation::getBlobImage
+     *
+     * Gets image blob string.
+     *
+     * @return string
+     */
     public function getBlobImage()
     {
         return $this->driver->blob( $this->config->offsetGet('quality') );
     }
+
+    // ------------------------------------------------------------------------
 
     /**
      * Manipulation::displayImage

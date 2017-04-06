@@ -140,6 +140,13 @@ class Dimension
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Dimension::getFocus
+     *
+     * Gets defined dimension focus.
+     *
+     * @return string
+     */
     public function getFocus()
     {
         return $this->quadrant;

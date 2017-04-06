@@ -37,7 +37,7 @@ abstract class AbstractDriver
      *
      * Library image resource.
      *
-     * @var resource
+     * @var resource|\Imagick|\Gmagick
      */
     protected $sourceImageResource;
 
@@ -46,7 +46,7 @@ abstract class AbstractDriver
      *
      * Library image resample resource.
      *
-     * @var resource
+     * @var resource|\Imagick|\Gmagick
      */
     protected $resampleImageResource;
 
@@ -180,7 +180,7 @@ abstract class AbstractDriver
      */
     public function hasErrors()
     {
-        if( count( $this->errors ) ) {
+        if ( count( $this->errors ) ) {
             return true;
         }
 

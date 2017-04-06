@@ -28,6 +28,22 @@ use O2System\Image\Watermark\Text;
 class ImagemagickDriver extends AbstractDriver
 {
     /**
+     * ImagemagickDriver::__destruct
+     */
+    public function __destruct()
+    {
+        if ( is_object( $this->sourceImageResource ) ) {
+            $this->sourceImageResource->destroy();
+        }
+
+        if ( is_object( $this->resampleImageResource ) ) {
+            $this->resampleImageResource->destroy();
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * ImagemagickDriver::createFromSource
      *
      * Create an image resource from source file.
@@ -482,10 +498,13 @@ class ImagemagickDriver extends AbstractDriver
      */
     public function display( $quality = 100 )
     {
+        $mime = $this->sourceImageFile->getMime();
+        $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
+
         header( 'Content-Disposition: filename=' . $this->sourceImageFile->getBasename() );
         header( 'Content-Transfer-Encoding: binary' );
         header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
-        header( 'Content-Type: ' . $this->sourceImageFile->getMime() );
+        header( 'Content-Type: ' . $mime );
 
         $resampleImageResource =& $this->getResampleImageResource();
         $resampleImageResource->setCompressionQuality( $quality );

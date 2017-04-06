@@ -52,6 +52,15 @@ abstract class AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * AbstractWatermark::setPosition
+     *
+     * Sets watermark position.
+     *
+     * @param string $position
+     *
+     * @return static
+     */
     public function setPosition( $position )
     {
         if ( in_array( $position, [
@@ -75,6 +84,29 @@ abstract class AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * AbstractWatermark::getPosition
+     *
+     * Gets watermark position.
+     *
+     * @return string
+     */
+    public function getPosition()
+    {
+        return $this->position;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractWatermark::setAxis
+     *
+     * Sets watermark axis.
+     *
+     * @param Axis $axis
+     *
+     * @return static
+     */
     public function setAxis( Axis $axis )
     {
         $this->axis = $axis;
@@ -84,13 +116,13 @@ abstract class AbstractWatermark
 
     // ------------------------------------------------------------------------
 
-    public function getPosition()
-    {
-        return $this->position;
-    }
-
-    // ------------------------------------------------------------------------
-
+    /**
+     * AbstractWatermark::getAxis
+     *
+     * Gets watermark axis.
+     *
+     * @return bool|\O2System\Image\Dimension\Axis
+     */
     public function getAxis()
     {
         if ( $this->axis instanceof Axis ) {
@@ -102,6 +134,15 @@ abstract class AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * AbstractWatermark::setPadding
+     *
+     * Sets watermark padding.
+     *
+     * @param int $padding
+     *
+     * @return static
+     */
     public function setPadding( $padding )
     {
         $this->padding = (int) $padding;
@@ -112,6 +153,10 @@ abstract class AbstractWatermark
     // ------------------------------------------------------------------------
 
     /**
+     * AbstractWatermark::getPadding
+     *
+     * Gets watermark padding.
+     *
      * @return int
      */
     public function getPadding()

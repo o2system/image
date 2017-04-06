@@ -69,7 +69,7 @@ class Text extends AbstractWatermark
     protected $string;
 
     /**
-     * AbstractWatermark::$angle
+     * Text::$angle
      *
      * Text angle.
      *
@@ -79,6 +79,15 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Text::setFontPath
+     *
+     * Sets text font path.
+     *
+     * @param $fontPath
+     *
+     * @return $this
+     */
     public function setFontPath( $fontPath )
     {
         if ( is_file( $fontPath ) ) {
@@ -123,7 +132,9 @@ class Text extends AbstractWatermark
      *
      * Create a signature text image watermark with Jellyka Saint-Andrew's Queen Truetype Font.
      *
-     * @param $string
+     * @param string $string
+     * @param int    $size
+     * @param string $color
      *
      * @return static
      */
@@ -143,7 +154,18 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
-    public function copyright( $string, $size = 8, $color = 'ffffff' )
+    /**
+     * Text::copyright
+     *
+     * Create a copyright text image watermark with Express Way Regular Truetype Font.
+     *
+     * @param string $string
+     * @param int    $size
+     * @param string $color
+     *
+     * @return $this
+     */
+    public function copyright( $string, $size = 10, $color = 'ffffff' )
     {
         $this->setFontPath( __DIR__ . DIRECTORY_SEPARATOR . 'Fonts/ExpresswayRg-Regular.ttf' )
             ->setFontSize( $size )
@@ -159,6 +181,13 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Text::getFontPath
+     *
+     * Gets text font path.
+     *
+     * @return string
+     */
     public function getFontPath()
     {
         return $this->fontPath;
@@ -166,6 +195,13 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Text::getFontSize
+     *
+     * Gets text font size.
+     *
+     * @return int
+     */
     public function getFontSize()
     {
         return $this->fontSize;
@@ -173,13 +209,27 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Text::getFontColor
+     *
+     * Gets text font color.
+     *
+     * @return string
+     */
     public function getFontColor()
     {
         return $this->fontColor;
     }
 
+    // ------------------------------------------------------------------------
 
-
+    /**
+     * Text::getString
+     *
+     * Gets text string.
+     *
+     * @return string
+     */
     public function getString()
     {
         return $this->string;
@@ -187,6 +237,13 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Text::getAngle
+     *
+     * Gets text angle.
+     *
+     * @return int
+     */
     public function getAngle()
     {
         return $this->angle;

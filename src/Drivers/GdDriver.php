@@ -28,6 +28,22 @@ use O2System\Image\Watermark\Text;
 class GdDriver extends AbstractDriver
 {
     /**
+     * GdDriver::__destruct
+     */
+    public function __destruct()
+    {
+        if ( is_resource( $this->sourceImageResource ) ) {
+            @imagedestroy( $this->sourceImageResource );
+        }
+
+        if ( is_resource( $this->resampleImageResource ) ) {
+            @imagedestroy( $this->resampleImageResource );
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * GdDriver::createFromSource
      *
      * Create an image resource from source file.
@@ -538,7 +554,7 @@ class GdDriver extends AbstractDriver
                 );
             }
 
-            if( $scale > 0 ) {
+            if ( $scale > 0 ) {
                 $watermarkImage->setResampleImage( $watermarkImageFile->withDimension(
                     $watermarkImageDimension
                         ->withScale( $scale )
@@ -724,7 +740,6 @@ class GdDriver extends AbstractDriver
 
         $mime = $this->sourceImageFile->getMime();
         $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
-
 
         switch ( $mime ) {
             case 'image/jpg':

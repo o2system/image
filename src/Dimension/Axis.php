@@ -56,6 +56,40 @@ class Axis
     // ------------------------------------------------------------------------
 
     /**
+     * Axis::withX
+     *
+     * Gets image axis with new x axis.
+     *
+     * @return static
+     */
+    public function withX( $x )
+    {
+        $newAxis = clone $this;
+        $newAxis->x = (int) $x;
+
+        return $newAxis;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Axis::withY
+     *
+     * Gets image axis with new y axis.
+     *
+     * @return static
+     */
+    public function withY( $y )
+    {
+        $newAxis = clone $this;
+        $newAxis->y = (int) $y;
+
+        return $newAxis;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * Axis::getX
      *
      * Gets image x axis.
