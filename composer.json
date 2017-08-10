@@ -41,6 +41,5 @@
     "psr-4": {
       "O2System\\Image\\": "src"
     }
-  },
-  "minimum-stability": "dev"
+  }
 }
