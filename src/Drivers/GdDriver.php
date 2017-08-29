@@ -64,24 +64,28 @@ class GdDriver extends AbstractDriver
         $mime = $this->sourceImageFile->getMime();
         $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
 
-        switch ( $mime ) {
-            case 'image/jpg':
-            case 'image/jpeg':
-                $this->sourceImageResource = imagecreatefromjpeg( $this->sourceImageFile->getRealPath() );
-                break;
+        try {
+            switch ( $mime ) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                    $this->sourceImageResource = imagecreatefromjpeg( $this->sourceImageFile->getRealPath() );
+                    break;
 
-            case 'image/gif':
-                $this->sourceImageResource = imagecreatefromgif( $this->sourceImageFile->getRealPath() );
-                break;
+                case 'image/gif':
+                    $this->sourceImageResource = imagecreatefromgif( $this->sourceImageFile->getRealPath() );
+                    break;
 
-            case 'image/png':
-            case 'image/x-png':
-                $this->sourceImageResource = imagecreatefrompng( $this->sourceImageFile->getRealPath() );
-                break;
+                case 'image/png':
+                case 'image/x-png':
+                    $this->sourceImageResource = imagecreatefrompng( $this->sourceImageFile->getRealPath() );
+                    break;
+            }
+
+            // Convert pallete images to true color images
+            imagepalettetotruecolor( $this->sourceImageResource );
+        } catch ( \Exception $e ) {
+
         }
-
-        // Convert pallete images to true color images
-        imagepalettetotruecolor( $this->sourceImageResource );
     }
 
     // ------------------------------------------------------------------------

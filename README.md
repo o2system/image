@@ -8,7 +8,7 @@ O2System Image is a PHP image handling and manipulation library for O2System Fra
 | GMagick | ```Yes``` | ```Yes``` | http://php.net/gmagick |
 | ImageMagick | ```Yes``` | ```Yes``` | http://php.net/imagemagick |
 
-### Composer Instalation
+### Composer Installation
 The best way to install O2System Image is to use [Composer](https://getcomposer.org)
 ```
 composer require o2system/image --prefer-dist dev-master
