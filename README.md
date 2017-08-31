@@ -11,7 +11,7 @@ O2System Image is a PHP image handling and manipulation library for O2System Fra
 ### Composer Installation
 The best way to install O2System Image is to use [Composer](https://getcomposer.org)
 ```
-composer require o2system/image --prefer-dist dev-master
+composer require o2system/image
 ```
 > Packagist: [https://packagist.org/packages/o2system/image](https://packagist.org/packages/o2system/image)
 
