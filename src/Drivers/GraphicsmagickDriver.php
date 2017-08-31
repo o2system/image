@@ -170,22 +170,65 @@ class GraphicsmagickDriver extends AbstractDriver
      *
      * Resize an image using the given new width and height.
      *
+     * @param bool $crop Perform auto crop or not
      * @return bool
      */
-    public function resize()
+    public function resize( $crop = false )
+    {
+        if ($crop) {
+            return $this->resizeCrop();
+        } else {
+            $sourceDimension = $this->sourceImageFile->getDimension();
+            $resampleDimension = $this->resampleImageFile->getDimension();
+
+            if (($sourceDimension->getWidth() <= $resampleDimension->getWidth()) && ($sourceDimension->getHeight() <= $resampleDimension->getHeight())) {
+                return true;
+            } //no resizing needed
+
+            //try max width first...
+            $resizeRatio = $resampleDimension->getWidth() / $sourceDimension->getWidth();
+            $resizeWidth = $resampleDimension->getWidth();
+            $resizeHeight = $sourceDimension->getHeight() * $resizeRatio;
+
+            //if that didn't work
+            if ($resizeHeight > $resampleDimension->getHeight()) {
+                $resizeRatio = $resampleDimension->getHeight() / $sourceDimension->getHeight();
+                $resizeHeight = $resampleDimension->getHeight();
+                $resizeWidth = $sourceDimension->getWidth() * $resizeRatio;
+            }
+
+            $resampleImageResource =& $this->getResampleImageResource();
+
+            try {
+                $resampleImageResource->resizeimage( $resizeWidth, $resizeHeight,
+                    \Gmagick::FILTER_CATROM, 0.9, true );
+                return true;
+
+            } catch ( \GmagickException $e ) {
+
+                $this->errors[ $e->getCode() ] = $e->getMessage();
+                return false;
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected function resizeCrop()
     {
         $sourceDimension = $this->sourceImageFile->getDimension();
         $resampleDimension = $this->resampleImageFile->getDimension();
 
-        $resizeWidth = $resampleDimension->getWidth() > $sourceDimension->getWidth() ? $sourceDimension->getWidth() : $resampleDimension->getWidth();
-        $resizeHeight = $resampleDimension->getHeight() > $sourceDimension->getHeight() ? $sourceDimension->getHeight() : $resampleDimension->getHeight();
+        //try max width first...
+        $resizeRatio = $resampleDimension->getWidth() / $sourceDimension->getWidth();
+        $resizeWidth = $resampleDimension->getWidth();
+        $resizeHeight = $sourceDimension->getHeight() * $resizeRatio;
 
-        if ( $sourceDimension->getOrientation() === 'LANDSCAPE' ) {
-            $resizeWidth = round( $sourceDimension->getWidth() * $resampleDimension->getHeight() / $sourceDimension->getHeight() );
+        //if that didn't work
+        if ($resizeHeight > $resampleDimension->getHeight()) {
+            $resizeRatio = $resampleDimension->getHeight() / $sourceDimension->getHeight();
             $resizeHeight = $resampleDimension->getHeight();
-        } elseif ( $sourceDimension->getOrientation() === 'PORTRAIT' ) {
-            $resizeWidth = $resampleDimension->getWidth();
-            $resizeHeight = round( $sourceDimension->getHeight() * $resampleDimension->getWidth() / $sourceDimension->getWidth() );
+            $resizeWidth = $sourceDimension->getWidth() * $resizeRatio;
         }
 
         $resampleImageResource =& $this->getResampleImageResource();
@@ -212,8 +255,8 @@ class GraphicsmagickDriver extends AbstractDriver
                 default:
                 case 'CENTER':
                     $resampleAxis = new Dimension\Axis(
-                        ( $sourceDimension->getWidth() - $resizeWidth ) / 2,
-                        ( $sourceDimension->getHeight() - $resizeHeight ) / 2
+                        ( $sourceDimension->getWidth() / 2 ) - ( $resizeWidth / 2 ),
+                        ( $sourceDimension->getHeight() / 2 ) - ( $resizeHeight / 2 )
                     );
                     break;
                 case 'NORTH':
@@ -280,8 +323,6 @@ class GraphicsmagickDriver extends AbstractDriver
 
         return $this->crop( $resampleDimension->withAxis( $resampleAxis ) );
     }
-
-    // ------------------------------------------------------------------------
 
     /**
      * GraphicsmagickDriver::scale

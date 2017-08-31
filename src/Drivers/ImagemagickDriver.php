@@ -32,11 +32,11 @@ class ImagemagickDriver extends AbstractDriver
      */
     public function __destruct()
     {
-        if ( is_object( $this->sourceImageResource ) ) {
+        if (is_object($this->sourceImageResource)) {
             $this->sourceImageResource->destroy();
         }
 
-        if ( is_object( $this->resampleImageResource ) ) {
+        if (is_object($this->resampleImageResource)) {
             $this->resampleImageResource->destroy();
         }
     }
@@ -52,7 +52,7 @@ class ImagemagickDriver extends AbstractDriver
      */
     public function createFromSource()
     {
-        $this->sourceImageResource = new \Imagick( $this->sourceImageFile->getRealPath() );
+        $this->sourceImageResource = new \Imagick($this->sourceImageFile->getRealPath());
     }
 
     // ------------------------------------------------------------------------
@@ -66,17 +66,17 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return bool
      */
-    public function createFromString( $imageString )
+    public function createFromString($imageString)
     {
         $this->sourceImageResource = new \Imagick();
 
         try {
 
-            return $this->sourceImageResource->readImageBlob( $imageString );
+            return $this->sourceImageResource->readImageBlob($imageString);
 
-        } catch ( \ImagickException $e ) {
+        } catch (\ImagickException $e) {
 
-            $this->errors[ $e->getCode() ] = $e->getMessage();
+            $this->errors[$e->getCode()] = $e->getMessage();
 
         }
 
@@ -94,11 +94,11 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return bool
      */
-    public function rotate( $degrees )
+    public function rotate($degrees)
     {
         $resampleImageResource =& $this->getResampleImageResource();
 
-        return $resampleImageResource->rotateImage( '#000000', $degrees );
+        return $resampleImageResource->rotateImage('#000000', $degrees);
     }
 
     // ------------------------------------------------------------------------
@@ -112,7 +112,7 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return bool
      */
-    public function flip( $axis )
+    public function flip($axis)
     {
         $gdAxis = [
             1 => IMG_FLIP_HORIZONTAL,
@@ -120,12 +120,12 @@ class ImagemagickDriver extends AbstractDriver
             3 => IMG_FLIP_BOTH,
         ];
 
-        if ( array_key_exists( $axis, $gdAxis ) ) {
+        if (array_key_exists($axis, $gdAxis)) {
             $resampleImageResource =& $this->getResampleImageResource();
 
             try {
 
-                switch ( $axis ) {
+                switch ($axis) {
                     case 1:
                         $resampleImageResource->flopImage();
                         break;
@@ -140,8 +140,8 @@ class ImagemagickDriver extends AbstractDriver
 
                 return true;
 
-            } catch ( \ImagickException $e ) {
-                $this->errors[ $e->getCode() ] = $e->getMessage();
+            } catch (\ImagickException $e) {
+                $this->errors[$e->getCode()] = $e->getMessage();
             }
         }
 
@@ -155,47 +155,84 @@ class ImagemagickDriver extends AbstractDriver
      *
      * Resize an image using the given new width and height.
      *
+     * @param bool $crop Perform auto crop or not
      * @return bool
      */
-    public function resize()
+    public function resize( $crop = false )
+    {
+        if ($crop) {
+            return $this->resizeCrop();
+        } else {
+            $sourceDimension = $this->sourceImageFile->getDimension();
+            $resampleDimension = $this->resampleImageFile->getDimension();
+
+            if (($sourceDimension->getWidth() <= $resampleDimension->getWidth()) && ($sourceDimension->getHeight() <= $resampleDimension->getHeight())) {
+                return true;
+            } //no resizing needed
+
+            //try max width first...
+            $resizeRatio = $resampleDimension->getWidth() / $sourceDimension->getWidth();
+            $resizeWidth = $resampleDimension->getWidth();
+            $resizeHeight = $sourceDimension->getHeight() * $resizeRatio;
+
+            //if that didn't work
+            if ($resizeHeight > $resampleDimension->getHeight()) {
+                $resizeRatio = $resampleDimension->getHeight() / $sourceDimension->getHeight();
+                $resizeHeight = $resampleDimension->getHeight();
+                $resizeWidth = $sourceDimension->getWidth() * $resizeRatio;
+            }
+
+            $resampleImageResource =& $this->getResampleImageResource();
+
+            return $resampleImageResource->resizeImage(
+                $resizeWidth,
+                $resizeHeight,
+                \Imagick::FILTER_CATROM, 0.9, true);
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    public function resizeCrop()
     {
         $sourceDimension = $this->sourceImageFile->getDimension();
         $resampleDimension = $this->resampleImageFile->getDimension();
 
-        $resizeWidth = $resampleDimension->getWidth() > $sourceDimension->getWidth() ? $sourceDimension->getWidth() : $resampleDimension->getWidth();
-        $resizeHeight = $resampleDimension->getHeight() > $sourceDimension->getHeight() ? $sourceDimension->getHeight() : $resampleDimension->getHeight();
+        //try max width first...
+        $resizeRatio = $resampleDimension->getWidth() / $sourceDimension->getWidth();
+        $resizeWidth = $resampleDimension->getWidth();
+        $resizeHeight = $sourceDimension->getHeight() * $resizeRatio;
 
-        if ( $sourceDimension->getOrientation() === 'LANDSCAPE' ) {
-            $resizeWidth = round( $sourceDimension->getWidth() * $resampleDimension->getHeight() / $sourceDimension->getHeight() );
+        //if that didn't work
+        if ($resizeHeight > $resampleDimension->getHeight()) {
+            $resizeRatio = $resampleDimension->getHeight() / $sourceDimension->getHeight();
             $resizeHeight = $resampleDimension->getHeight();
-        } elseif ( $sourceDimension->getOrientation() === 'PORTRAIT' ) {
-            $resizeWidth = $resampleDimension->getWidth();
-            $resizeHeight = round( $sourceDimension->getHeight() * $resampleDimension->getWidth() / $sourceDimension->getWidth() );
+            $resizeWidth = $sourceDimension->getWidth() * $resizeRatio;
         }
 
         $resampleImageResource =& $this->getResampleImageResource();
 
-        if ( $resampleDimension->getOrientation() === 'SQUARE' ) {
-            if ( $resampleImageResource->resizeImage( $resizeWidth, $resizeHeight, \Imagick::FILTER_LANCZOS, 0.9,
-                true )
+        if ($resampleDimension->getOrientation() === 'SQUARE') {
+            if ($resampleImageResource->resizeImage($resizeWidth, $resizeHeight, \Imagick::FILTER_LANCZOS, 0.9,
+                true)
             ) {
                 $resampleAxis = new Dimension\Axis(
-                    ( $resizeWidth - $resampleDimension->getWidth() ) / 2,
-                    ( $resizeHeight - $resampleDimension->getWidth() ) / 2
+                    ($resizeWidth - $resampleDimension->getWidth()) / 2,
+                    ($resizeHeight - $resampleDimension->getWidth()) / 2
                 );
             }
         } else {
-            switch ( $resampleDimension->getFocus() ) {
+            switch ($resampleDimension->getFocus()) {
                 default:
                 case 'CENTER':
                     $resampleAxis = new Dimension\Axis(
-                        ( $sourceDimension->getWidth() - $resizeWidth ) / 2,
-                        ( $sourceDimension->getHeight() - $resizeHeight ) / 2
+                        ( $sourceDimension->getWidth() / 2 ) - ( $resizeWidth / 2 ),
+                        ( $sourceDimension->getHeight() / 2 ) - ( $resizeHeight / 2 )
                     );
                     break;
                 case 'NORTH':
                     $resampleAxis = new Dimension\Axis(
-                        ( $sourceDimension->getWidth() - $resizeWidth ) / 2,
+                        ($sourceDimension->getWidth() - $resizeWidth) / 2,
                         0
                     );
                     break;
@@ -213,7 +250,7 @@ class ImagemagickDriver extends AbstractDriver
                     break;
                 case 'SOUTH':
                     $resampleAxis = new Dimension\Axis(
-                        ( $sourceDimension->getWidth() - $resizeWidth ) / 2,
+                        ($sourceDimension->getWidth() - $resizeWidth) / 2,
                         $sourceDimension->getHeight() - $resizeHeight
                     );
                     break;
@@ -232,34 +269,32 @@ class ImagemagickDriver extends AbstractDriver
                 case 'WEST':
                     $resampleAxis = new Dimension\Axis(
                         0,
-                        ( $sourceDimension->getHeight() - $resizeHeight ) / 2
+                        ($sourceDimension->getHeight() - $resizeHeight) / 2
                     );
                     break;
                 case 'EAST':
                     $resampleAxis = new Dimension\Axis(
                         $sourceDimension->getWidth() - $resizeWidth,
-                        ( $sourceDimension->getHeight() - $resizeHeight ) / 2
+                        ($sourceDimension->getHeight() - $resizeHeight) / 2
                     );
                     break;
             }
 
-            if ( ! $resampleImageResource->resizeImage(
+            if (!$resampleImageResource->resizeImage(
                 $sourceDimension->getWidth(),
                 $sourceDimension->getHeight(),
-                \Imagick::FILTER_CATROM, 0.9, true )
+                \Imagick::FILTER_CATROM, 0.9, true)
             ) {
                 return false;
             }
         }
 
-        if ( isset( $resampleAxis ) ) {
-            return $this->crop( $resampleDimension->withAxis( $resampleAxis ) );
+        if (isset($resampleAxis)) {
+            return $this->crop($resampleDimension->withAxis($resampleAxis));
         }
 
         return false;
     }
-
-    // ------------------------------------------------------------------------
 
     /**
      * ImagemagickDriver::scale
@@ -275,10 +310,10 @@ class ImagemagickDriver extends AbstractDriver
         $resampleImageResource =& $this->getResampleImageResource();
 
         try {
-            return $resampleImageResource->scaleImage( $resampleDimension->getWidth(), $resampleDimension->getHeight(),
-                true );
-        } catch ( \ImagickException $e ) {
-            $this->errors[ $e->getCode() ] = $e->getMessage();
+            return $resampleImageResource->scaleImage($resampleDimension->getWidth(), $resampleDimension->getHeight(),
+                true);
+        } catch (\ImagickException $e) {
+            $this->errors[$e->getCode()] = $e->getMessage();
         }
 
         return false;
@@ -295,7 +330,7 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return bool
      */
-    public function crop( Dimension $dimension )
+    public function crop(Dimension $dimension)
     {
         $resampleImageResource =& $this->getResampleImageResource();
 
@@ -306,8 +341,8 @@ class ImagemagickDriver extends AbstractDriver
                 $dimension->getAxis()->getX(),
                 $dimension->getAxis()->getY()
             );
-        } catch ( \ImagickException $e ) {
-            $this->errors[ $e->getCode() ] = $e->getMessage();
+        } catch (\ImagickException $e) {
+            $this->errors[$e->getCode()] = $e->getMessage();
         }
 
         return false;
@@ -324,58 +359,58 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return bool
      */
-    public function watermark( AbstractWatermark $watermark )
+    public function watermark(AbstractWatermark $watermark)
     {
         $resampleImageResource =& $this->getResampleImageResource();
 
-        if ( $watermark instanceof Text ) {
+        if ($watermark instanceof Text) {
 
             $draw = new \ImagickDraw();
-            $draw->setFont( $watermark->getFontPath() );
-            $draw->setFontSize( $watermark->getFontSize() );
-            $draw->setFillColor( $watermark->getFontColor() );
+            $draw->setFont($watermark->getFontPath());
+            $draw->setFontSize($watermark->getFontSize());
+            $draw->setFillColor($watermark->getFontColor());
 
-            if ( false !== ( $textAxis = $watermark->getAxis() ) ) {
-                $draw->annotation( $textAxis->getX(), $textAxis->getY(), $watermark->getString() );
+            if (false !== ($textAxis = $watermark->getAxis())) {
+                $draw->annotation($textAxis->getX(), $textAxis->getY(), $watermark->getString());
             } else {
-                switch ( $watermark->getPosition() ) {
+                switch ($watermark->getPosition()) {
                     default:
                     case 'MIDDLE_MIDDLE':
                     case 'MIDDLE':
                     case 'CENTER':
-                        $draw->setGravity( \Imagick::GRAVITY_CENTER );
+                        $draw->setGravity(\Imagick::GRAVITY_CENTER);
                         break;
 
                     case 'MIDDLE_LEFT':
-                        $draw->setGravity( \Imagick::GRAVITY_WEST );
+                        $draw->setGravity(\Imagick::GRAVITY_WEST);
                         break;
 
                     case 'MIDDLE_RIGHT':
-                        $draw->setGravity( \Imagick::GRAVITY_EAST );
+                        $draw->setGravity(\Imagick::GRAVITY_EAST);
                         break;
 
                     case 'MIDDLE_TOP':
-                        $draw->setGravity( \Imagick::GRAVITY_NORTH );
+                        $draw->setGravity(\Imagick::GRAVITY_NORTH);
                         break;
 
                     case 'MIDDLE_BOTTOM':
-                        $draw->setGravity( \Imagick::GRAVITY_SOUTH );
+                        $draw->setGravity(\Imagick::GRAVITY_SOUTH);
                         break;
 
                     case 'TOP_LEFT':
-                        $draw->setGravity( \Imagick::GRAVITY_NORTHWEST );
+                        $draw->setGravity(\Imagick::GRAVITY_NORTHWEST);
                         break;
 
                     case 'TOP_RIGHT':
-                        $draw->setGravity( \Imagick::GRAVITY_NORTHEAST );
+                        $draw->setGravity(\Imagick::GRAVITY_NORTHEAST);
                         break;
 
                     case 'BOTTOM_LEFT':
-                        $draw->setGravity( \Imagick::GRAVITY_SOUTHWEST );
+                        $draw->setGravity(\Imagick::GRAVITY_SOUTHWEST);
                         break;
 
                     case 'BOTTOM_RIGHT':
-                        $draw->setGravity( \Imagick::GRAVITY_SOUTHEAST );
+                        $draw->setGravity(\Imagick::GRAVITY_SOUTHEAST);
                         break;
                 }
             }
@@ -387,9 +422,9 @@ class ImagemagickDriver extends AbstractDriver
                 $watermark->getAngle(),
                 $watermark->getString()
             );
-        } elseif ( $watermark instanceof Overlay ) {
+        } elseif ($watermark instanceof Overlay) {
             $watermarkImage = new self;
-            $watermarkImage->setSourceImage( $watermark->getImagePath() );
+            $watermarkImage->setSourceImage($watermark->getImagePath());
             $watermarkImage->createFromSource();
 
             $watermarkImageFile = $watermarkImage->getSourceImageFile();
@@ -398,56 +433,56 @@ class ImagemagickDriver extends AbstractDriver
 
             $resampleImageDimension = $this->resampleImageFile->getDimension();
 
-            if ( false === ( $scale = $watermark->getImageScale() ) ) {
+            if (false === ($scale = $watermark->getImageScale())) {
                 $scale = min(
-                    round( ( ( $resampleImageDimension->getWidth() / 2 ) / $watermarkImageDimension->getWidth() ) * 100 ),
-                    round( ( ( $resampleImageDimension->getHeight() / 2 ) / $watermarkImageDimension->getHeight() ) * 100 )
+                    round((($resampleImageDimension->getWidth() / 2) / $watermarkImageDimension->getWidth()) * 100),
+                    round((($resampleImageDimension->getHeight() / 2) / $watermarkImageDimension->getHeight()) * 100)
                 );
             }
 
-            if ( $scale > 0 ) {
-                $watermarkImage->setResampleImage( $watermarkImageFile->withDimension(
+            if ($scale > 0) {
+                $watermarkImage->setResampleImage($watermarkImageFile->withDimension(
                     $watermarkImageDimension
-                        ->withScale( $scale )
-                ) );
+                        ->withScale($scale)
+                ));
             }
 
             $watermarkImageDimension = $watermarkImage->getResampleImageFile()->getDimension();
 
-            if ( $watermarkImage->scale() ) {
+            if ($watermarkImage->scale()) {
                 $watermarkImageResource = $watermarkImage->getResampleImageResource();
 
-                if ( false !== ( $watermarkAxis = $watermark->getAxis() ) ) {
+                if (false !== ($watermarkAxis = $watermark->getAxis())) {
                     $watermarkImageAxisX = $watermarkAxis->getX();
                     $watermarkImageAxisY = $watermarkAxis->getY();
                 } else {
-                    switch ( $watermark->getPosition() ) {
+                    switch ($watermark->getPosition()) {
                         default:
                         case 'MIDDLE_MIDDLE':
                         case 'MIDDLE':
                         case 'CENTER':
-                            $watermarkImageAxisX = ( $resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth() ) / 2;
-                            $watermarkImageAxisY = ( $resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight() ) / 2;
+                            $watermarkImageAxisX = ($resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth()) / 2;
+                            $watermarkImageAxisY = ($resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight()) / 2;
                             break;
 
                         case 'MIDDLE_LEFT':
                             $watermarkImageAxisX = $watermark->getPadding();
-                            $watermarkImageAxisY = ( $resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight() ) / 2;
+                            $watermarkImageAxisY = ($resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight()) / 2;
                             break;
 
                         case 'MIDDLE_RIGHT':
-                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ( $watermarkImageDimension->getWidth() + $watermark->getPadding() );
-                            $watermarkImageAxisY = ( $resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight() ) / 2;
+                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ($watermarkImageDimension->getWidth() + $watermark->getPadding());
+                            $watermarkImageAxisY = ($resampleImageDimension->getHeight() - $watermarkImageDimension->getHeight()) / 2;
                             break;
 
                         case 'MIDDLE_TOP':
-                            $watermarkImageAxisX = ( $resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth() ) / 2;
+                            $watermarkImageAxisX = ($resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth()) / 2;
                             $watermarkImageAxisY = $watermarkImageDimension->getHeight() + $watermark->getPadding();
                             break;
 
                         case 'MIDDLE_BOTTOM':
-                            $watermarkImageAxisX = ( $resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth() ) / 2;
-                            $watermarkImageAxisY = $resampleImageDimension->getHeight() - ( $watermarkImageDimension->getHeight() + $watermark->getPadding() );
+                            $watermarkImageAxisX = ($resampleImageDimension->getWidth() - $watermarkImageDimension->getWidth()) / 2;
+                            $watermarkImageAxisY = $resampleImageDimension->getHeight() - ($watermarkImageDimension->getHeight() + $watermark->getPadding());
                             break;
 
                         case 'TOP_LEFT':
@@ -456,7 +491,7 @@ class ImagemagickDriver extends AbstractDriver
                             break;
 
                         case 'TOP_RIGHT':
-                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ( $watermarkImageDimension->getWidth() + $watermark->getPadding() );
+                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ($watermarkImageDimension->getWidth() + $watermark->getPadding());
                             $watermarkImageAxisY = $watermarkImageDimension->getHeight() + $watermark->getPadding();
                             break;
 
@@ -466,20 +501,20 @@ class ImagemagickDriver extends AbstractDriver
                             break;
 
                         case 'BOTTOM_RIGHT':
-                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ( $watermarkImageDimension->getWidth() + $watermark->getPadding() );
-                            $watermarkImageAxisY = $resampleImageDimension->getHeight() - ( $watermarkImageDimension->getHeight() + $watermark->getPadding() );
+                            $watermarkImageAxisX = $resampleImageDimension->getWidth() - ($watermarkImageDimension->getWidth() + $watermark->getPadding());
+                            $watermarkImageAxisY = $resampleImageDimension->getHeight() - ($watermarkImageDimension->getHeight() + $watermark->getPadding());
                             break;
                     }
                 }
 
                 try {
-                    $resampleImageResource->compositeImage( $watermarkImageResource, \Imagick::COMPOSITE_OVER,
+                    $resampleImageResource->compositeImage($watermarkImageResource, \Imagick::COMPOSITE_OVER,
                         $watermarkImageAxisX,
-                        $watermarkImageAxisY );
+                        $watermarkImageAxisY);
 
                     return true;
-                } catch ( \ImagickException $e ) {
-                    $this->errors[ $e->getCode() ] = $e->getMessage();
+                } catch (\ImagickException $e) {
+                    $this->errors[$e->getCode()] = $e->getMessage();
                 }
             }
         }
@@ -496,21 +531,21 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return void
      */
-    public function display( $quality = 100 )
+    public function display($quality = 100)
     {
         $mime = $this->sourceImageFile->getMime();
-        $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
+        $mime = is_array($mime) ? $mime[0] : $mime;
 
-        header( 'Content-Disposition: filename=' . $this->sourceImageFile->getBasename() );
-        header( 'Content-Transfer-Encoding: binary' );
-        header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
-        header( 'Content-Type: ' . $mime );
+        header('Content-Disposition: filename=' . $this->sourceImageFile->getBasename());
+        header('Content-Transfer-Encoding: binary');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()) . ' GMT');
+        header('Content-Type: ' . $mime);
 
         $resampleImageResource =& $this->getResampleImageResource();
-        $resampleImageResource->setCompressionQuality( $quality );
+        $resampleImageResource->setCompressionQuality($quality);
         echo $resampleImageResource->getImageBlob();
 
-        exit( EXIT_SUCCESS );
+        exit(EXIT_SUCCESS);
     }
 
     // ------------------------------------------------------------------------
@@ -522,10 +557,10 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return string
      */
-    public function blob( $quality = 100 )
+    public function blob($quality = 100)
     {
         $resampleImageResource =& $this->getResampleImageResource();
-        $resampleImageResource->setCompressionQuality( $quality );
+        $resampleImageResource->setCompressionQuality($quality);
 
         return $resampleImageResource->getImageBlob();
     }
@@ -538,15 +573,15 @@ class ImagemagickDriver extends AbstractDriver
      * Save an image.
      *
      * @param string $imageTargetFilePath
-     * @param int    $quality
+     * @param int $quality
      *
      * @return bool
      */
-    public function save( $imageTargetFilePath, $quality = 100 )
+    public function save($imageTargetFilePath, $quality = 100)
     {
         $resampleImageResource =& $this->getResampleImageResource();
-        $resampleImageResource->setCompressionQuality( $quality );
+        $resampleImageResource->setCompressionQuality($quality);
 
-        return (bool)$resampleImageResource->writeImage( $imageTargetFilePath );
+        return (bool)$resampleImageResource->writeImage($imageTargetFilePath);
     }
 }
