@@ -1,5 +1,5 @@
 # O2System Image
-O2System Image is a PHP image handling and manipulation library for O2System Framework providing an easier and expressive way to manipulate an image. Allows different PHP Image Processor and Generator to be used.
+O2System Image is a PHP image handling and manipulation library for O2System Framework which provides an easier and expressive way to manipulate an image. It allows different PHP Image Processor and Generator to be used.
 
 ### Supported PHP Image Processors and Generator Drivers
 | Processors | Support | Tested  | &nbsp; |
