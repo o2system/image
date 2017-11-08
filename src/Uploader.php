@@ -113,7 +113,7 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
             if ( $this->allowedImageSize[ 'width' ][ 'min' ] > 0 ) {
                 if ( $width < $this->allowedImageSize[ 'width' ][ 'min' ] ) {
                     $this->errors[] = language()->getLine(
-                        'E_UPLOADED_ALLOWED_MIN_IMG_WIDTH_SIZE',
+                        'IMAGE_E_ALLOWED_MIN_WIDTH_SIZE',
                         [ $this->allowedFileSize[ 'min' ], $width ]
                     );
                 }
@@ -123,7 +123,7 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
             if ( $this->allowedImageSize[ 'width' ][ 'max' ] > 0 ) {
                 if ( $width > $this->allowedImageSize[ 'width' ][ 'max' ] ) {
                     $this->errors[] = language()->getLine(
-                        'E_UPLOADED_ALLOWED_MAX_IMG_WIDTH_SIZE',
+                        'IMAGE_E_ALLOWED_MAX_WIDTH_SIZE',
                         [ $this->allowedFileSize[ 'max' ], $width ]
                     );
                 }
@@ -133,7 +133,7 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
             if ( $this->allowedImageSize[ 'height' ][ 'min' ] > 0 ) {
                 if ( $height < $this->allowedImageSize[ 'width' ][ 'min' ] ) {
                     $this->errors[] = language()->getLine(
-                        'E_UPLOADED_ALLOWED_MIN_IMG_HEIGHT_SIZE',
+                        'IMAGE_E_ALLOWED_MIN_HEIGHT_SIZE',
                         [ $this->allowedFileSize[ 'min' ], $height ]
                     );
                 }
@@ -143,7 +143,7 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
             if ( $this->allowedImageSize[ 'height' ][ 'max' ] > 0 ) {
                 if ( $height > $this->allowedImageSize[ 'width' ][ 'max' ] ) {
                     $this->errors[] = language()->getLine(
-                        'E_UPLOADED_ALLOWED_MAX_IMG_HEIGHT_SIZE',
+                        'IMAGE_E_ALLOWED_MAX_HEIGHT_SIZE',
                         [ $this->allowedFileSize[ 'max' ], $height ]
                     );
                 }

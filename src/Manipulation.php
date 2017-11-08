@@ -288,7 +288,7 @@ class Manipulation
     public function setImageFile( $imageFilePath )
     {
         if ( ! $this->driver->setSourceImage( $imageFilePath ) ) {
-            throw new FileNotFoundException( 'E_IMAGE_FILE_NOT_FOUND' );
+            throw new FileNotFoundException( 'IMAGE_E_FILE_NOT_FOUND', 0, [ $imageFilePath ] );
         }
 
         // Create image source resource
@@ -302,7 +302,7 @@ class Manipulation
     public function setImageUrl( $imageUrl )
     {
         if( false === ( $imageString = file_get_contents( $imageUrl ) ) ) {
-            throw new FileNotFoundException( 'E_IMAGE_URL_INVALID' );
+            throw new FileNotFoundException( 'IMAGE_E_URL_INVALID', 0, [ $imageUrl ] );
         }
 
         // Create image source resource
@@ -326,7 +326,7 @@ class Manipulation
     {
         if( $base64 ) {
             if( false === ( $imageString = base64_decode( $imageString, true ) ) ) {
-                throw new FileNotFoundException( 'E_IMAGE_STRING_INVALID' );
+                throw new FileNotFoundException( 'IMAGE_E_STRING_INVALID' );
             }
         }
 
