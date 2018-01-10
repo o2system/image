@@ -31,10 +31,12 @@ class Config extends \O2System\Kernel\Datastructures\Config
         $defaultConfig = [
             'driver'              => 'gd', // gd | imagick | gmagick
             'maintainAspectRatio' => true,
+            'scaleDirective'      => 'RATIO', // RATIO | UP | DOWN
             'focus'               => 'NORTHWEST',
             'orientation'         => 'AUTO',
             'quality'             => 100,
             'cached'              => false,
+            'optimizer'           => 'default'
         ];
 
         $config = array_merge( $defaultConfig, $config );

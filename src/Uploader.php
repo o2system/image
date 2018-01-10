@@ -65,6 +65,15 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
 
     // ------------------------------------------------------------------------
 
+    public function __construct(array $config = [])
+    {
+        language()
+            ->addFilePath( __DIR__ . DIRECTORY_SEPARATOR )
+            ->loadFile('image');
+
+        parent::__construct($config);
+    }
+
     public function setMinWidthSize( $size )
     {
         $this->allowedImageSize[ 'width' ][ 'min' ] = (int)$size;

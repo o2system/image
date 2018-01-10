@@ -19,6 +19,7 @@ use O2System\Image\Abstracts\AbstractWatermark;
 use O2System\Image\Dimension;
 use O2System\Image\Watermark\Overlay;
 use O2System\Image\Watermark\Text;
+use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException;
 
 /**
  * Class GraphicsmagickDriver
@@ -27,6 +28,19 @@ use O2System\Image\Watermark\Text;
  */
 class GraphicsmagickDriver extends AbstractDriver
 {
+    /**
+     * GraphicsmagickDriver constructor.
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException
+     */
+    public function __construct()
+    {
+        if( ! class_exists('Gmagick', false) ) {
+            throw new BadPhpExtensionCallException('IMAGE_E_PHP_EXTENSION', 0,['gmagick']);
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
     /**
      * GraphicsmagickDriver::__destruct
      */
@@ -584,19 +598,30 @@ class GraphicsmagickDriver extends AbstractDriver
      *
      * @return void
      */
-    public function display( $quality = 100 )
+    public function display( $quality = 100, $mime = null )
     {
-        $mime = $this->sourceImageFile->getMime();
-        $mime = is_array( $mime ) ? $mime[ 0 ] : $mime;
+        $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
+        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        header( 'Content-Disposition: filename=' . $this->sourceImageFile->getBasename() );
+        if( empty( $mime ) ) {
+            $mime = $this->sourceImageFile->getMime();
+            $mime = is_array($mime) ? $mime[0] : $mime;
+
+            $extension = $this->getMimeExtension( $mime );
+        }
+
+        header('Content-Disposition: filename=' . $filename . '.' . $extension );
         header( 'Content-Transfer-Encoding: binary' );
         header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
         header( 'Content-Type: ' . $mime );
 
-        echo $this->blob( $quality );
+        $blob = $this->blob( $quality, $mime );
 
-        exit( 0 );
+        header( 'ETag: ' . md5( $blob ) );
+
+        echo $blob;
+
+        exit(0);
     }
 
     // ------------------------------------------------------------------------
@@ -608,11 +633,21 @@ class GraphicsmagickDriver extends AbstractDriver
      *
      * @return string
      */
-    public function blob( $quality = 100 )
+    public function blob( $quality = 100, $mime = null )
     {
         $imageBlob = '';
 
-        if ( $this->save( $tempImageFilePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $this->sourceImageFile->getBasename(),
+        $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
+        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
+
+        if( empty( $mime ) ) {
+            $mime = $this->sourceImageFile->getMime();
+            $mime = is_array($mime) ? $mime[0] : $mime;
+
+            $extension = $this->getMimeExtension( $mime );
+        }
+
+        if ( $this->save( $tempImageFilePath = rtrim( sys_get_temp_dir(), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
             $quality )
         ) {
             $imageBlob = readfile( $tempImageFilePath );
@@ -638,6 +673,32 @@ class GraphicsmagickDriver extends AbstractDriver
     {
         $resampleImageResource =& $this->getResampleImageResource();
         $resampleImageResource->setCompressionQuality( $quality );
+        $resampleImageResource->stripimage();
+
+        $extension = pathinfo($imageTargetFilePath, PATHINFO_EXTENSION);
+
+        switch ($extension) {
+            case 'jpg':
+            case 'jpeg':
+                $resampleImageResource->setImageFormat('jpg');
+                break;
+
+            case 'gif':
+                $resampleImageResource->setImageFormat('gif');
+                break;
+
+            case 'png':
+                $resampleImageResource->setImageFormat('png');
+                $resampleImageResource->setImageAlphaChannel(\Gmagick::ALPHACHANNEL_ACTIVATE);
+                $resampleImageResource->setBackgroundColor(new \GmagickPixel('transparent'));
+                break;
+
+            case 'webp':
+                $resampleImageResource->setImageFormat('webp');
+                $resampleImageResource->setImageAlphaChannel(\Gmagick::ALPHACHANNEL_ACTIVATE);
+                $resampleImageResource->setBackgroundColor(new \GmagickPixel('transparent'));
+                break;
+        }
 
         try {
 

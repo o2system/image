@@ -35,6 +35,15 @@ class Dimension
     public $maintainAspectRatio = true;
 
     /**
+     * Dimension::$directive
+     *
+     * Image dimension directive.
+     *
+     * @var string
+     */
+    protected $directive = 'RATIO';
+
+    /**
      * Dimension::$orientation
      *
      * Image dimension orientation.
@@ -133,6 +142,27 @@ class Dimension
 
         if ( in_array( $orientation, [ 'AUTO', 'LANDSCAPE', 'PORTRAIT', 'SQUARE' ] ) ) {
             $newDimension->orientation = $orientation;
+        }
+
+        return $newDimension;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Dimension::withDirective
+     *
+     * Get new image dimension with defined directive.
+     *
+     * return Dimension
+     */
+    public function withDirective( $directive )
+    {
+        $newDimension = clone $this;
+
+        if( in_array( $directive, [ 'RATIO', 'UP', 'DOWN' ]) )
+        {
+            $newDimension->directive = $directive;
         }
 
         return $newDimension;
@@ -280,7 +310,7 @@ class Dimension
      */
     public function withWidth( $newWidth )
     {
-        return $this->withSize( ceil( $newWidth * $this->height / $this->width ), $newWidth );
+        return $this->withSize( $newWidth, ceil( $newWidth * $this->height / $this->width ) );
     }
 
     // ------------------------------------------------------------------------
@@ -315,15 +345,43 @@ class Dimension
     {
         $newDimension = clone $this;
 
-        if( $this->maintainAspectRatio ) {
-            $newDimension->width = $newWidth > $this->width ? $this->width : $newWidth;
-            $newDimension->height = $newHeight > $this->height ? $this->height : $newHeight;
-        } else {
-            $newDimension->width = (int)$newWidth;
-            $newDimension->height = (int)$newHeight;
+        if( $newWidth == 0 && $newHeight > 0 ) {
+            $newDimension->withHeight( $newHeight );
+            $newWidth = $newDimension->getWidth();
+        } else if( $newWidth > 0 && $newHeight == 0 ) {
+            $newDimension->withWidth( $newWidth );
+            $newHeight = $newDimension->getHeight();
         }
 
-        return $newDimension;
+        $targetDimension = clone $this;
+
+        if( $this->directive === 'UP' ) {
+            if( $newWidth > $this->width ) {
+                $targetDimension->width = $newWidth;
+                $targetDimension->height = $newHeight;
+                return $targetDimension;
+            } elseif( $newWidth < $this->width ) {
+                return $targetDimension;
+            }
+        } elseif( $this->directive === 'DOWN' ) {
+            if( $newWidth > $this->width ) {
+                return $targetDimension;
+            } elseif( $newWidth < $this->width ) {
+                $targetDimension->width = $newWidth;
+                $targetDimension->height = $newHeight;
+                return $targetDimension;
+            }
+        }
+
+        if( $this->maintainAspectRatio ) {
+            $targetDimension->width = $newWidth > $this->width ? $this->width : $newWidth;
+            $targetDimension->height = $newHeight > $this->height ? $this->height : $newHeight;
+        } else {
+            $targetDimension->width = (int)$newWidth;
+            $targetDimension->height = (int)$newHeight;
+        }
+
+        return $targetDimension;
     }
 
     // ------------------------------------------------------------------------

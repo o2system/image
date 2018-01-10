@@ -19,6 +19,7 @@ use O2System\Image\Abstracts\AbstractWatermark;
 use O2System\Image\Dimension;
 use O2System\Image\Watermark\Overlay;
 use O2System\Image\Watermark\Text;
+use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException;
 
 /**
  * Class ImagemagickDriver
@@ -27,6 +28,19 @@ use O2System\Image\Watermark\Text;
  */
 class ImagemagickDriver extends AbstractDriver
 {
+    /**
+     * ImagemagickDriver constructor.
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException
+     */
+    public function __construct()
+    {
+        if( ! class_exists('Imagick', false) ) {
+            throw new BadPhpExtensionCallException('IMAGE_E_PHP_EXTENSION', 0,['imagick']);
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
     /**
      * ImagemagickDriver::__destruct
      */
@@ -531,21 +545,30 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return void
      */
-    public function display($quality = 100)
+    public function display($quality = 100, $mime = null)
     {
-        $mime = $this->sourceImageFile->getMime();
-        $mime = is_array($mime) ? $mime[0] : $mime;
+        $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
+        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        header('Content-Disposition: filename=' . $this->sourceImageFile->getBasename());
+        if( empty( $mime ) ) {
+            $mime = $this->sourceImageFile->getMime();
+            $mime = is_array($mime) ? $mime[0] : $mime;
+
+            $extension = $this->getMimeExtension( $mime );
+        }
+
+        header('Content-Disposition: filename=' . $filename . '.' . $extension );
         header('Content-Transfer-Encoding: binary');
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()) . ' GMT');
         header('Content-Type: ' . $mime);
 
-        $resampleImageResource =& $this->getResampleImageResource();
-        $resampleImageResource->setCompressionQuality($quality);
-        echo $resampleImageResource->getImageBlob();
+        $blob = $this->blob( $quality );
 
-        exit(EXIT_SUCCESS);
+        header( 'ETag: ' . md5( $blob ) );
+
+        echo $blob;
+
+        exit(0);
     }
 
     // ------------------------------------------------------------------------
@@ -557,12 +580,30 @@ class ImagemagickDriver extends AbstractDriver
      *
      * @return string
      */
-    public function blob($quality = 100)
+    public function blob($quality = 100, $mime = null)
     {
-        $resampleImageResource =& $this->getResampleImageResource();
-        $resampleImageResource->setCompressionQuality($quality);
+        $imageBlob = '';
 
-        return $resampleImageResource->getImageBlob();
+        $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
+        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
+
+        if( empty( $mime ) ) {
+            $mime = $this->sourceImageFile->getMime();
+            $mime = is_array($mime) ? $mime[0] : $mime;
+
+            $extension = $this->getMimeExtension( $mime );
+        }
+
+        header('Content-Disposition: filename=' . $filename . '.' . $extension );
+
+        if ( $this->save( $tempImageFilePath = rtrim( sys_get_temp_dir(), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
+            $quality )
+        ) {
+            $imageBlob = readfile( $tempImageFilePath );
+            unlink( $tempImageFilePath );
+        }
+
+        return $imageBlob;
     }
 
     // ------------------------------------------------------------------------
@@ -580,7 +621,38 @@ class ImagemagickDriver extends AbstractDriver
     public function save($imageTargetFilePath, $quality = 100)
     {
         $resampleImageResource =& $this->getResampleImageResource();
+
+        $extension = pathinfo($imageTargetFilePath, PATHINFO_EXTENSION);
+
+        switch ($extension) {
+            case 'jpg':
+            case 'jpeg':
+                $resampleImageResource->setImageFormat('jpg');
+                $resampleImageResource->setCompression( \Imagick::COMPRESSION_LOSSLESSJPEG );
+                break;
+
+            case 'gif':
+                $resampleImageResource->setImageFormat('gif');
+                $resampleImageResource->setCompression( \Imagick::COMPRESSION_UNDEFINED );
+                break;
+
+            case 'png':
+                $resampleImageResource->setImageFormat('png');
+                $resampleImageResource->setCompression( \Imagick::COMPRESSION_UNDEFINED );
+                $resampleImageResource->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
+                $resampleImageResource->setBackgroundColor(new \ImagickPixel('transparent'));
+                break;
+
+            case 'webp':
+                $resampleImageResource->setImageFormat('webp');
+                $resampleImageResource->setCompression( \Imagick::COMPRESSION_UNDEFINED );
+                $resampleImageResource->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
+                $resampleImageResource->setBackgroundColor(new \ImagickPixel('transparent'));
+                break;
+        }
+
         $resampleImageResource->setCompressionQuality($quality);
+        $resampleImageResource->stripImage();
 
         return (bool)$resampleImageResource->writeImage($imageTargetFilePath);
     }

@@ -726,39 +726,38 @@ class GdDriver extends AbstractDriver
      *
      * @return void
      */
-    public function display($quality = 100)
+    public function display($quality = 100, $mime = null)
     {
-        header('Content-Disposition: filename=' . $this->sourceImageFile->getBasename());
-        header('Content-Transfer-Encoding: binary');
-        header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()) . ' GMT');
+        $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
+        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        $resampleImageResource =& $this->getResampleImageResource();
+        if( empty( $mime ) ) {
+            $mime = $this->sourceImageFile->getMime();
+            $mime = is_array($mime) ? $mime[0] : $mime;
 
-        $mime = $this->sourceImageFile->getMime();
-        $mime = is_array($mime) ? $mime[0] : $mime;
+            $extensions = [
+                'image/gif' => 'gif',
+                'image/jpg' => 'jpg',
+                'image/jpeg' => 'jpeg',
+                'image/png' => 'png',
+                'image/webp' => 'webp'
+            ];
 
-        switch ($mime) {
-            case 'image/jpg':
-            case 'image/jpeg':
-                header('Content-Type: image/jpeg');
-                imagejpeg($resampleImageResource, null, $quality);
-                break;
-
-            case 'image/gif':
-                header('Content-Type: image/gif');
-                imagegif($resampleImageResource);
-                break;
-
-            case 'image/png':
-            case 'image/x-png':
-                header('Content-Type: image/png');
-                imagealphablending($resampleImageResource, false);
-                imagesavealpha($resampleImageResource, true);
-                imagepng($resampleImageResource);
-                break;
+            $extension = $extensions[ $mime ];
         }
 
-        exit(EXIT_SUCCESS);
+        header('Content-Disposition: filename=' . $filename . '.' . $extension );
+        header( 'Content-Transfer-Encoding: binary' );
+        header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
+        header( 'Content-Type: ' . $mime );
+
+        $blob = $this->blob( $quality, $mime );
+
+        header( 'ETag: ' . md5( $blob ) );
+
+        echo $blob;
+
+        exit(0);
     }
 
     // ------------------------------------------------------------------------
@@ -770,33 +769,26 @@ class GdDriver extends AbstractDriver
      *
      * @return string
      */
-    public function blob($quality = 100)
+    public function blob($quality = 100, $mime = null)
     {
-        $resampleImageResource =& $this->getResampleImageResource();
+        $imageBlob = '';
 
-        $mime = $this->sourceImageFile->getMime();
-        $mime = is_array($mime) ? $mime[0] : $mime;
+        $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
+        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        ob_start();
-        switch ($mime) {
-            case 'image/jpg':
-            case 'image/jpeg':
-                imagejpeg($resampleImageResource, null, $quality);
-                break;
+        if( empty( $mime ) ) {
+            $mime = $this->sourceImageFile->getMime();
+            $mime = is_array($mime) ? $mime[0] : $mime;
 
-            case 'image/gif':
-                imagegif($resampleImageResource);
-                break;
-
-            case 'image/png':
-            case 'image/x-png':
-                imagealphablending($resampleImageResource, false);
-                imagesavealpha($resampleImageResource, true);
-                imagepng($resampleImageResource);
-                break;
+            $extension = $this->getMimeExtension( $mime );
         }
-        $imageBlob = ob_get_contents();
-        ob_end_clean();
+
+        if ( $this->save( $tempImageFilePath = rtrim( sys_get_temp_dir(), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
+            $quality )
+        ) {
+            $imageBlob = readfile( $tempImageFilePath );
+            unlink( $tempImageFilePath );
+        }
 
         return $imageBlob;
     }
@@ -817,25 +809,27 @@ class GdDriver extends AbstractDriver
     {
         $resampleImageResource =& $this->getResampleImageResource();
 
-        $mime = $this->sourceImageFile->getMime();
-        $mime = is_array($mime) ? $mime[0] : $mime;
+        $extension = pathinfo($imageTargetFilePath, PATHINFO_EXTENSION);
 
-        switch ($mime) {
-            case 'image/jpg':
-            case 'image/jpeg':
+        switch ($extension) {
+            case 'jpg':
+            case 'jpeg':
                 return (bool)@imagejpeg($resampleImageResource, $imageTargetFilePath, $quality);
                 break;
 
-            case 'image/gif':
+            case 'gif':
                 return (bool)@imagegif($resampleImageResource, $imageTargetFilePath);
                 break;
 
-            case 'image/png':
-            case 'image/x-png':
+            case 'png':
                 imagealphablending($resampleImageResource, false);
                 imagesavealpha($resampleImageResource, true);
 
                 return (bool)@imagepng($resampleImageResource, $imageTargetFilePath);
+                break;
+
+            case 'webp':
+                return (bool)@imagewebp($resampleImageResource, $imageTargetFilePath);
                 break;
         }
 

@@ -218,6 +218,32 @@ abstract class AbstractDriver
     // ------------------------------------------------------------------------
 
     /**
+     * AbstractDriver::getMimeExtension
+     *
+     * Gets image mime extension.
+     *
+     * @param string $mime
+     *
+     * @return bool|string
+     */
+    public function getMimeExtension( $mime )
+    {
+        $extensions = [
+            'image/gif' => 'gif',
+            'image/jpg' => 'jpg',
+            'image/jpeg' => 'jpeg',
+            'image/png' => 'png',
+            'image/webp' => 'webp'
+        ];
+
+        if( array_key_exists( $mime, $extensions) ) {
+            return $extensions[ $mime ];
+        }
+
+        return false;
+    }
+
+    /**
      * AbstractDriver::createFromSource
      *
      * Create an image resource from source file.
@@ -296,7 +322,7 @@ abstract class AbstractDriver
      *
      * @return void
      */
-    abstract public function display( $quality = 100 );
+    abstract public function display( $quality = 100, $mime = null );
 
     // ------------------------------------------------------------------------
 
@@ -307,7 +333,7 @@ abstract class AbstractDriver
      *
      * @return string
      */
-    abstract public function blob( $quality = 100 );
+    abstract public function blob( $quality = 100, $mime = null );
 
     // ------------------------------------------------------------------------
 

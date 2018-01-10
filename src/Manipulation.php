@@ -17,6 +17,7 @@ namespace O2System\Image;
 use O2System\Image\Abstracts\AbstractDriver;
 use O2System\Image\Abstracts\AbstractWatermark;
 use O2System\Image\Datastructures\Config;
+use O2System\Image\Optimizers\Imageoptim;
 use O2System\Spl\Exceptions\Runtime\FileNotFoundException;
 
 /**
@@ -88,6 +89,37 @@ class Manipulation
      * @var string
      */
     const ORIENTATION_LANDSCAPE = 'LANDSCAPE';
+
+    /**
+     * Manipulation::DIRECTIVE_UP
+     *
+     * If the target image size is larger than the size of the source image then the image source size
+     * will be resized according to the target image size. But if the target image size is smaller than
+     * the size of the source image then the resulting image size will match the size of the image source.
+     * In other words the target image size should not be smaller than the size of the source image.
+     *
+     * @var string
+     */
+    const DIRECTIVE_UP = 'UP';
+
+    /**
+     * Manipulation::DIRECTIVE_DOWN
+     *
+     * If the target image size is smaller than the size of the source image then the image source size
+     * will be resized according to the target image size. But if the target image size is larger than
+     * the size of the source image then the resulting image size will match the size of the image source.
+     * In other words the target image size can not be larger than the size of the image source.
+     */
+    const DIRECTIVE_DOWN = 'DOWN';
+
+    /**
+     * Manipulation::DIRECTIVE_RATIO
+     *
+     * The source image size will always resized according to the target image size and according to aspect ratio.
+     *
+     * @var string
+     */
+    const DIRECTIVE_RATIO = 'RATIO';
 
     /**
      * Manipulation::ORIENTATION_PORTRAIT
@@ -215,6 +247,10 @@ class Manipulation
      */
     public function __construct( Config $config = null )
     {
+        language()
+            ->addFilePath( __DIR__ . DIRECTORY_SEPARATOR )
+            ->loadFile('image');
+
         $this->config = is_null( $config ) ? new Config() : $config;
 
         if ( $this->config->offsetExists( 'driver' ) ) {
@@ -388,11 +424,14 @@ class Manipulation
      *
      * @param int    $newWidth    The width to scale the image to.
      * @param int    $newHeight   The height to scale the image to.
+     * @param bool   $crop        The image autocrop
      *
      * @return bool
      */
-    public function resizeImage( $newWidth, $newHeight )
+    public function resizeImage( $newWidth, $newHeight, $crop = false )
     {
+        $newWidth = intval($newWidth);
+        $newHeight = intval($newHeight);
         $resampleImageFile = $this->driver->getSourceImageFile();
         $resampleDimension = $resampleImageFile->getDimension();
         $resampleDimension->maintainAspectRatio = $this->config->offsetGet( 'maintainAspectRatio' );
@@ -404,16 +443,19 @@ class Manipulation
                     ->withFocus( 'CENTER' )
                     ->withSize( $newWidth, $newHeight )
             ) );
+
+            return $this->driver->resize(true);
         } else {
             $this->driver->setResampleImage( $resampleImageFile->withDimension(
                 $resampleDimension
+                    ->withDirective( $this->config->offsetGet('scaleDirective' ) )
                     ->withOrientation( $this->config->offsetGet( 'orientation' ) )
                     ->withFocus( $this->config->offsetGet( 'focus' ) )
                     ->withSize( $newWidth, $newHeight )
             ) );
-        }
 
-        return $this->driver->resize();
+            return $this->driver->resize( $crop );
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -492,9 +534,34 @@ class Manipulation
      *
      * @return void
      */
-    public function displayImage()
+    public function displayImage( $quality = null, $mime = null )
     {
-        $this->driver->display( $this->config->offsetGet( 'quality' ) );
+        $quality = empty( $quality ) ? $this->config->offsetGet( 'quality' ) : $quality;
+
+        $filename = pathinfo($this->driver->getSourceImageFile()->getBasename(), PATHINFO_FILENAME);
+        $extension = pathinfo( $this->driver->getSourceImageFile()->getBasename(), PATHINFO_EXTENSION);
+
+        if( empty( $mime ) ) {
+            $mime = $this->driver->getSourceImageFile()->getMime();
+            $mime = is_array($mime) ? $mime[0] : $mime;
+
+            $extension = $this->driver->getMimeExtension( $mime );
+        }
+
+        if ( $this->saveImage( $tempImageFilePath = rtrim( sys_get_temp_dir(), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
+            $quality )
+        ) {
+            $imageBlob = readfile( $tempImageFilePath );
+            unlink( $tempImageFilePath );
+        }
+
+        header('Content-Transfer-Encoding: binary');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()) . ' GMT');
+        header('Content-Disposition: filename=' . $filename . '.' . $extension);
+        header('Content-Type: ' . $mime);
+
+        echo $imageBlob;
+        exit(0);
     }
 
     // ------------------------------------------------------------------------
@@ -508,8 +575,33 @@ class Manipulation
      *
      * @return bool
      */
-    public function saveImage( $saveImageFilePath )
+    public function saveImage( $saveImageFilePath, $quality = null )
     {
-        $this->driver->save( $saveImageFilePath, $this->config->offsetGet( 'quality' ) );
+        $quality = empty( $quality ) ? $this->config->offsetGet( 'quality' ) : $quality;
+        $optimizerConfig = $this->config->offsetGet( 'optimizer' );
+
+        if( $this->driver->save( $saveImageFilePath, $quality ) ) {
+            if( $optimizerConfig === 'default' ) {
+                $optimizer = new Optimizer();
+                $optimizer->optimize( $saveImageFilePath );
+            } elseif( ! empty( $optimizerConfig['factory'] ) ) {
+                $factory = $optimizerConfig['factory'];
+                $optimizer = new Optimizer();
+
+                switch ( $factory ) {
+                    case 'imageoptim';
+                    $factory = new Imageoptim();
+                    $factory->setUsername( $optimizerConfig['username'] );
+                    $optimizer->setImageFactory( $factory );
+                    break;
+                }
+
+                $optimizer->optimize( $saveImageFilePath );
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
