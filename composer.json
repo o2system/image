@@ -36,7 +36,8 @@
   },
   "require": {
     "php": ">=5.6.0",
-    "o2system/filesystem": "*"
+    "o2system/filesystem": "*",
+    "ps/image-optimizer": "^1.1"
   },
   "autoload": {
     "psr-4": {

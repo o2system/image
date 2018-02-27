@@ -38,7 +38,9 @@ class Optimizer
     public function optimize( $imageFilePath )
     {
         if( empty( $this->imageFactory ) ) {
-            ( new OptimizerFactory() )->get()->optimize( $imageFilePath );
+            if(class_exists('\ImageOptimizer\OptimizerFactory')) {
+                ( new OptimizerFactory() )->get()->optimize( $imageFilePath );
+            }
         } elseif( $this->imageFactory instanceof Imageoptim || $this->imageFactory instanceof Optimus ) {
             $imageString = $this->imageFactory->optimize( $imageFilePath, 'full' );
             file_put_contents( $imageFilePath, $imageString );
