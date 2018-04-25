@@ -31,9 +31,9 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
      * @var array
      */
     protected $allowedMimes = [
-        IMAGETYPE_GIF => 'image/gif',
-        IMAGETYPE_JPEG => 'image/jpeg',
-        IMAGETYPE_PNG => 'image/png',
+        IMAGETYPE_GIF,
+        IMAGETYPE_JPEG,
+        IMAGETYPE_PNG,
     ];
 
     /**
