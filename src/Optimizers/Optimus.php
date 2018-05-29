@@ -46,7 +46,7 @@ class Optimus
      */
     public function __construct($apiKey = null)
     {
-        if(isset( $apiKey ) ) {
+        if (isset($apiKey)) {
             $this->setApiKey($apiKey);
         }
     }

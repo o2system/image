@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image;
@@ -66,15 +67,15 @@ class File extends \O2System\Filesystem\File
      *
      * @param string $filePath
      */
-    public function __construct( $filePath )
+    public function __construct($filePath)
     {
-        parent::__construct( $filePath );
+        parent::__construct($filePath);
 
         // Set image file properties
-        if ( false !== ( $imageSize = getimagesize( $filePath ) ) ) {
-            $this->dimension = new Dimension( $imageSize[ 0 ], $imageSize[ 1 ] );
+        if (false !== ($imageSize = getimagesize($filePath))) {
+            $this->dimension = new Dimension($imageSize[ 0 ], $imageSize[ 1 ]);
             $this->bits = $imageSize[ 'bits' ];
-            $this->channels = isset( $imageSize[ 'channels' ] ) ? $imageSize[ 'channels' ] : 0;
+            $this->channels = isset($imageSize[ 'channels' ]) ? $imageSize[ 'channels' ] : 0;
             $this->type = $imageSize[ 2 ];
         }
     }
@@ -102,7 +103,7 @@ class File extends \O2System\Filesystem\File
      *
      * @param Dimension $dimension New image dimension.
      */
-    public function withDimension( Dimension $dimension )
+    public function withDimension(Dimension $dimension)
     {
         $newFile = clone $this;
         $newFile->dimension = $dimension;
@@ -163,8 +164,8 @@ class File extends \O2System\Filesystem\File
      */
     public function getExif()
     {
-        if ( false !== ( $exifData = exif_read_data( $this->getRealPath() ) ) ) {
-            return new SplArrayObject( $exifData );
+        if (false !== ($exifData = exif_read_data($this->getRealPath()))) {
+            return new SplArrayObject($exifData);
         }
 
         return false;

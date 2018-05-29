@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Drivers;
@@ -34,8 +35,8 @@ class ImagemagickDriver extends AbstractDriver
      */
     public function __construct()
     {
-        if( ! class_exists('Imagick', false) ) {
-            throw new BadPhpExtensionCallException('IMAGE_E_PHP_EXTENSION', 0,['imagick']);
+        if ( ! class_exists('Imagick', false)) {
+            throw new BadPhpExtensionCallException('IMAGE_E_PHP_EXTENSION', 0, ['imagick']);
         }
     }
 
@@ -53,20 +54,6 @@ class ImagemagickDriver extends AbstractDriver
         if (is_object($this->resampleImageResource)) {
             $this->resampleImageResource->destroy();
         }
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * ImagemagickDriver::createFromSource
-     *
-     * Create an image resource from source file.
-     *
-     * @return static
-     */
-    public function createFromSource()
-    {
-        $this->sourceImageResource = new \Imagick($this->sourceImageFile->getRealPath());
     }
 
     // ------------------------------------------------------------------------
@@ -90,7 +77,7 @@ class ImagemagickDriver extends AbstractDriver
 
         } catch (\ImagickException $e) {
 
-            $this->errors[$e->getCode()] = $e->getMessage();
+            $this->errors[ $e->getCode() ] = $e->getMessage();
 
         }
 
@@ -155,7 +142,7 @@ class ImagemagickDriver extends AbstractDriver
                 return true;
 
             } catch (\ImagickException $e) {
-                $this->errors[$e->getCode()] = $e->getMessage();
+                $this->errors[ $e->getCode() ] = $e->getMessage();
             }
         }
 
@@ -170,9 +157,10 @@ class ImagemagickDriver extends AbstractDriver
      * Resize an image using the given new width and height.
      *
      * @param bool $crop Perform auto crop or not
+     *
      * @return bool
      */
-    public function resize( $crop = false )
+    public function resize($crop = false)
     {
         if ($crop) {
             return $this->resizeCrop();
@@ -240,8 +228,8 @@ class ImagemagickDriver extends AbstractDriver
                 default:
                 case 'CENTER':
                     $resampleAxis = new Dimension\Axis(
-                        ( $sourceDimension->getWidth() / 2 ) - ( $resizeWidth / 2 ),
-                        ( $sourceDimension->getHeight() / 2 ) - ( $resizeHeight / 2 )
+                        ($sourceDimension->getWidth() / 2) - ($resizeWidth / 2),
+                        ($sourceDimension->getHeight() / 2) - ($resizeHeight / 2)
                     );
                     break;
                 case 'NORTH':
@@ -294,7 +282,7 @@ class ImagemagickDriver extends AbstractDriver
                     break;
             }
 
-            if (!$resampleImageResource->resizeImage(
+            if ( ! $resampleImageResource->resizeImage(
                 $sourceDimension->getWidth(),
                 $sourceDimension->getHeight(),
                 \Imagick::FILTER_CATROM, 0.9, true)
@@ -305,29 +293,6 @@ class ImagemagickDriver extends AbstractDriver
 
         if (isset($resampleAxis)) {
             return $this->crop($resampleDimension->withAxis($resampleAxis));
-        }
-
-        return false;
-    }
-
-    /**
-     * ImagemagickDriver::scale
-     *
-     * Scale an image with a given scale.
-     *
-     * @return bool
-     */
-    public function scale()
-    {
-        $resampleDimension = $this->resampleImageFile->getDimension();
-
-        $resampleImageResource =& $this->getResampleImageResource();
-
-        try {
-            return $resampleImageResource->scaleImage($resampleDimension->getWidth(), $resampleDimension->getHeight(),
-                true);
-        } catch (\ImagickException $e) {
-            $this->errors[$e->getCode()] = $e->getMessage();
         }
 
         return false;
@@ -356,13 +321,11 @@ class ImagemagickDriver extends AbstractDriver
                 $dimension->getAxis()->getY()
             );
         } catch (\ImagickException $e) {
-            $this->errors[$e->getCode()] = $e->getMessage();
+            $this->errors[ $e->getCode() ] = $e->getMessage();
         }
 
         return false;
     }
-
-    // ------------------------------------------------------------------------
 
     /**
      * ImagemagickDriver::watermark
@@ -528,9 +491,48 @@ class ImagemagickDriver extends AbstractDriver
 
                     return true;
                 } catch (\ImagickException $e) {
-                    $this->errors[$e->getCode()] = $e->getMessage();
+                    $this->errors[ $e->getCode() ] = $e->getMessage();
                 }
             }
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * ImagemagickDriver::createFromSource
+     *
+     * Create an image resource from source file.
+     *
+     * @return static
+     */
+    public function createFromSource()
+    {
+        $this->sourceImageResource = new \Imagick($this->sourceImageFile->getRealPath());
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * ImagemagickDriver::scale
+     *
+     * Scale an image with a given scale.
+     *
+     * @return bool
+     */
+    public function scale()
+    {
+        $resampleDimension = $this->resampleImageFile->getDimension();
+
+        $resampleImageResource =& $this->getResampleImageResource();
+
+        try {
+            return $resampleImageResource->scaleImage($resampleDimension->getWidth(), $resampleDimension->getHeight(),
+                true);
+        } catch (\ImagickException $e) {
+            $this->errors[ $e->getCode() ] = $e->getMessage();
         }
 
         return false;
@@ -548,23 +550,23 @@ class ImagemagickDriver extends AbstractDriver
     public function display($quality = 100, $mime = null)
     {
         $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
-        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
+        $extension = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        if( empty( $mime ) ) {
+        if (empty($mime)) {
             $mime = $this->sourceImageFile->getMime();
-            $mime = is_array($mime) ? $mime[0] : $mime;
+            $mime = is_array($mime) ? $mime[ 0 ] : $mime;
 
-            $extension = $this->getMimeExtension( $mime );
+            $extension = $this->getMimeExtension($mime);
         }
 
-        header('Content-Disposition: filename=' . $filename . '.' . $extension );
+        header('Content-Disposition: filename=' . $filename . '.' . $extension);
         header('Content-Transfer-Encoding: binary');
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()) . ' GMT');
         header('Content-Type: ' . $mime);
 
-        $blob = $this->blob( $quality );
+        $blob = $this->blob($quality);
 
-        header( 'ETag: ' . md5( $blob ) );
+        header('ETag: ' . md5($blob));
 
         echo $blob;
 
@@ -585,22 +587,23 @@ class ImagemagickDriver extends AbstractDriver
         $imageBlob = '';
 
         $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
-        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
+        $extension = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        if( empty( $mime ) ) {
+        if (empty($mime)) {
             $mime = $this->sourceImageFile->getMime();
-            $mime = is_array($mime) ? $mime[0] : $mime;
+            $mime = is_array($mime) ? $mime[ 0 ] : $mime;
 
-            $extension = $this->getMimeExtension( $mime );
+            $extension = $this->getMimeExtension($mime);
         }
 
-        header('Content-Disposition: filename=' . $filename . '.' . $extension );
+        header('Content-Disposition: filename=' . $filename . '.' . $extension);
 
-        if ( $this->save( $tempImageFilePath = rtrim( sys_get_temp_dir(), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
-            $quality )
+        if ($this->save($tempImageFilePath = rtrim(sys_get_temp_dir(),
+                DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
+            $quality)
         ) {
-            $imageBlob = readfile( $tempImageFilePath );
-            unlink( $tempImageFilePath );
+            $imageBlob = readfile($tempImageFilePath);
+            unlink($tempImageFilePath);
         }
 
         return $imageBlob;
@@ -614,7 +617,7 @@ class ImagemagickDriver extends AbstractDriver
      * Save an image.
      *
      * @param string $imageTargetFilePath
-     * @param int $quality
+     * @param int    $quality
      *
      * @return bool
      */
@@ -628,24 +631,24 @@ class ImagemagickDriver extends AbstractDriver
             case 'jpg':
             case 'jpeg':
                 $resampleImageResource->setImageFormat('jpg');
-                $resampleImageResource->setCompression( \Imagick::COMPRESSION_LOSSLESSJPEG );
+                $resampleImageResource->setCompression(\Imagick::COMPRESSION_LOSSLESSJPEG);
                 break;
 
             case 'gif':
                 $resampleImageResource->setImageFormat('gif');
-                $resampleImageResource->setCompression( \Imagick::COMPRESSION_UNDEFINED );
+                $resampleImageResource->setCompression(\Imagick::COMPRESSION_UNDEFINED);
                 break;
 
             case 'png':
                 $resampleImageResource->setImageFormat('png');
-                $resampleImageResource->setCompression( \Imagick::COMPRESSION_UNDEFINED );
+                $resampleImageResource->setCompression(\Imagick::COMPRESSION_UNDEFINED);
                 $resampleImageResource->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                 $resampleImageResource->setBackgroundColor(new \ImagickPixel('transparent'));
                 break;
 
             case 'webp':
                 $resampleImageResource->setImageFormat('webp');
-                $resampleImageResource->setCompression( \Imagick::COMPRESSION_UNDEFINED );
+                $resampleImageResource->setCompression(\Imagick::COMPRESSION_UNDEFINED);
                 $resampleImageResource->setImageAlphaChannel(\Imagick::ALPHACHANNEL_ACTIVATE);
                 $resampleImageResource->setBackgroundColor(new \ImagickPixel('transparent'));
                 break;

@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Abstracts;
@@ -53,38 +54,6 @@ abstract class AbstractWatermark
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractWatermark::setPosition
-     *
-     * Sets watermark position.
-     *
-     * @param string $position
-     *
-     * @return static
-     */
-    public function setPosition( $position )
-    {
-        if ( in_array( $position, [
-            'CENTER',
-            'MIDDLE',
-            'MIDDLE_MIDDLE',
-            'MIDDLE_LEFT',
-            'MIDDLE_RIGHT',
-            'MIDDLE_TOP',
-            'MIDDLE_BOTTOM',
-            'TOP_LEFT',
-            'TOP_RIGHT',
-            'BOTTOM_LEFT',
-            'BOTTOM_RIGHT'
-        ] ) ) {
-            $this->position = strtoupper( $position );
-        }
-
-        return $this;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * AbstractWatermark::getPosition
      *
      * Gets watermark position.
@@ -99,17 +68,31 @@ abstract class AbstractWatermark
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractWatermark::setAxis
+     * AbstractWatermark::setPosition
      *
-     * Sets watermark axis.
+     * Sets watermark position.
      *
-     * @param Axis $axis
+     * @param string $position
      *
      * @return static
      */
-    public function setAxis( Axis $axis )
+    public function setPosition($position)
     {
-        $this->axis = $axis;
+        if (in_array($position, [
+            'CENTER',
+            'MIDDLE',
+            'MIDDLE_MIDDLE',
+            'MIDDLE_LEFT',
+            'MIDDLE_RIGHT',
+            'MIDDLE_TOP',
+            'MIDDLE_BOTTOM',
+            'TOP_LEFT',
+            'TOP_RIGHT',
+            'BOTTOM_LEFT',
+            'BOTTOM_RIGHT',
+        ])) {
+            $this->position = strtoupper($position);
+        }
 
         return $this;
     }
@@ -125,7 +108,7 @@ abstract class AbstractWatermark
      */
     public function getAxis()
     {
-        if ( $this->axis instanceof Axis ) {
+        if ($this->axis instanceof Axis) {
             return $this->axis;
         }
 
@@ -135,17 +118,17 @@ abstract class AbstractWatermark
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractWatermark::setPadding
+     * AbstractWatermark::setAxis
      *
-     * Sets watermark padding.
+     * Sets watermark axis.
      *
-     * @param int $padding
+     * @param Axis $axis
      *
      * @return static
      */
-    public function setPadding( $padding )
+    public function setAxis(Axis $axis)
     {
-        $this->padding = (int) $padding;
+        $this->axis = $axis;
 
         return $this;
     }
@@ -162,5 +145,23 @@ abstract class AbstractWatermark
     public function getPadding()
     {
         return $this->padding;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractWatermark::setPadding
+     *
+     * Sets watermark padding.
+     *
+     * @param int $padding
+     *
+     * @return static
+     */
+    public function setPadding($padding)
+    {
+        $this->padding = (int)$padding;
+
+        return $this;
     }
 }

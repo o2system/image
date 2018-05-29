@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Datastructures;
@@ -26,7 +27,7 @@ class Config extends \O2System\Kernel\Datastructures\Config
      *
      * @param array $config
      */
-    public function __construct( array $config = [] )
+    public function __construct(array $config = [])
     {
         $defaultConfig = [
             'driver'              => 'gd', // gd | imagick | gmagick
@@ -36,17 +37,17 @@ class Config extends \O2System\Kernel\Datastructures\Config
             'orientation'         => 'AUTO',
             'quality'             => 100,
             'cached'              => false,
-            'optimizer'           => 'default'
+            'optimizer'           => 'default',
         ];
 
-        $config = array_merge( $defaultConfig, $config );
+        $config = array_merge($defaultConfig, $config);
 
-        if ( $config[ 'driver' ] === 'imagick' ) {
+        if ($config[ 'driver' ] === 'imagick') {
             $config[ 'driver' ] = 'imagemagick';
-        } elseif ( $config[ 'driver' ] === 'gmagick' ) {
+        } elseif ($config[ 'driver' ] === 'gmagick') {
             $config[ 'driver' ] = 'graphicsmagick';
         }
 
-        parent::__construct( $config );
+        parent::__construct($config);
     }
 }

@@ -134,16 +134,16 @@ class Imageoptim
         $boundary = "XXX$contentHash";
         $nameEscaped = addslashes(basename($image));
 
-        $options['content'] = "--$boundary\r\n" .
+        $options[ 'content' ] = "--$boundary\r\n" .
             "Content-Disposition: form-data; name=\"file\"; filename=\"{$nameEscaped}\"\r\n" .
             "Content-Type: application/octet-stream\r\n" .
             "Content-Transfer-Encoding: binary\r\n" .
             "\r\n$fileData\r\n--$boundary--";
 
-        $options['header'] =
+        $options[ 'header' ] =
             "Accept: image/*,application/im2+json\r\n" .
             "User-Agent: ImageOptim-php/1.1 PHP/" . phpversion() .
-            "Content-Length: " . strlen( $options['content']) . "\r\n" .
+            "Content-Length: " . strlen($options[ 'content' ]) . "\r\n" .
             "Content-MD5: $contentHash\r\n" .
             "Content-Type: multipart/form-data, boundary=$boundary\r\n";
 

@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image;
@@ -245,16 +246,16 @@ class Manipulation
      *
      * @param \O2System\Image\Datastructures\Config $config
      */
-    public function __construct( Config $config = null )
+    public function __construct(Config $config = null)
     {
         language()
-            ->addFilePath( __DIR__ . DIRECTORY_SEPARATOR )
+            ->addFilePath(__DIR__ . DIRECTORY_SEPARATOR)
             ->loadFile('image');
 
-        $this->config = is_null( $config ) ? new Config() : $config;
+        $this->config = is_null($config) ? new Config() : $config;
 
-        if ( $this->config->offsetExists( 'driver' ) ) {
-            $this->loadDriver( $this->config->driver );
+        if ($this->config->offsetExists('driver')) {
+            $this->loadDriver($this->config->driver);
         }
     }
 
@@ -269,19 +270,19 @@ class Manipulation
      *
      * @return bool
      */
-    protected function loadDriver( $driverOffset )
+    protected function loadDriver($driverOffset)
     {
-        $driverClassName = '\O2System\Image\Drivers\\' . ucfirst( $driverOffset ) . 'Driver';
+        $driverClassName = '\O2System\Image\Drivers\\' . ucfirst($driverOffset) . 'Driver';
 
-        if ( class_exists( $driverClassName ) ) {
-            if ( $this->config->offsetExists( $driverOffset ) ) {
+        if (class_exists($driverClassName)) {
+            if ($this->config->offsetExists($driverOffset)) {
                 $config = $this->config[ $driverOffset ];
             } else {
                 $config = $this->config->getArrayCopy();
             }
 
-            if ( isset( $config[ 'engine' ] ) ) {
-                unset( $config[ 'engine' ] );
+            if (isset($config[ 'engine' ])) {
+                unset($config[ 'engine' ]);
             }
 
             $this->driver = new $driverClassName();
@@ -303,7 +304,7 @@ class Manipulation
      *
      * @return static
      */
-    public function setDriver( AbstractDriver $imageDriver )
+    public function setDriver(AbstractDriver $imageDriver)
     {
         $this->driver = $imageDriver;
 
@@ -321,10 +322,10 @@ class Manipulation
      *
      * @return static
      */
-    public function setImageFile( $imageFilePath )
+    public function setImageFile($imageFilePath)
     {
-        if ( ! $this->driver->setSourceImage( $imageFilePath ) ) {
-            throw new FileNotFoundException( 'IMAGE_E_FILE_NOT_FOUND', 0, [ $imageFilePath ] );
+        if ( ! $this->driver->setSourceImage($imageFilePath)) {
+            throw new FileNotFoundException('IMAGE_E_FILE_NOT_FOUND', 0, [$imageFilePath]);
         }
 
         // Create image source resource
@@ -335,14 +336,14 @@ class Manipulation
 
     // ------------------------------------------------------------------------
 
-    public function setImageUrl( $imageUrl )
+    public function setImageUrl($imageUrl)
     {
-        if( false === ( $imageString = file_get_contents( $imageUrl ) ) ) {
-            throw new FileNotFoundException( 'IMAGE_E_URL_INVALID', 0, [ $imageUrl ] );
+        if (false === ($imageString = file_get_contents($imageUrl))) {
+            throw new FileNotFoundException('IMAGE_E_URL_INVALID', 0, [$imageUrl]);
         }
 
         // Create image source resource
-        $this->driver->createFromString( $imageString );
+        $this->driver->createFromString($imageString);
 
         return $this;
     }
@@ -353,21 +354,21 @@ class Manipulation
      * Manipulation::setImageString
      *
      * @param string $imageString Image string.
-     * @param bool   $base64 Use base64_decode to decode the image string.
+     * @param bool   $base64      Use base64_decode to decode the image string.
      *
      * @return static
      * @throws \O2System\Spl\Exceptions\Runtime\FileNotFoundException
      */
-    public function setImageString( $imageString, $base64 = false )
+    public function setImageString($imageString, $base64 = false)
     {
-        if( $base64 ) {
-            if( false === ( $imageString = base64_decode( $imageString, true ) ) ) {
-                throw new FileNotFoundException( 'IMAGE_E_STRING_INVALID' );
+        if ($base64) {
+            if (false === ($imageString = base64_decode($imageString, true))) {
+                throw new FileNotFoundException('IMAGE_E_STRING_INVALID');
             }
         }
 
         // Create image source resource
-        $this->driver->createFromString( $imageString );
+        $this->driver->createFromString($imageString);
 
         return $this;
     }
@@ -383,10 +384,10 @@ class Manipulation
      *
      * @return bool
      */
-    public function rotateImage( $degrees )
+    public function rotateImage($degrees)
     {
-        if ( is_int( $degrees ) ) {
-            $this->driver->rotate( $degrees );
+        if (is_int($degrees)) {
+            $this->driver->rotate($degrees);
 
             return true;
         }
@@ -403,11 +404,11 @@ class Manipulation
      *
      * @param int $axis Image flip axis.
      */
-    public function flipImage( $axis )
+    public function flipImage($axis)
     {
-        if ( in_array( $axis, [ self::FLIP_HORIZONTAL, self::FLIP_VERTICAL, self::FLIP_BOTH ] ) ) {
+        if (in_array($axis, [self::FLIP_HORIZONTAL, self::FLIP_VERTICAL, self::FLIP_BOTH])) {
 
-            $this->driver->flip( $axis );
+            $this->driver->flip($axis);
 
             return true;
         }
@@ -422,39 +423,39 @@ class Manipulation
      *
      * Scale an image using the given new width and height
      *
-     * @param int    $newWidth    The width to scale the image to.
-     * @param int    $newHeight   The height to scale the image to.
-     * @param bool   $crop        The image autocrop
+     * @param int  $newWidth  The width to scale the image to.
+     * @param int  $newHeight The height to scale the image to.
+     * @param bool $crop      The image autocrop
      *
      * @return bool
      */
-    public function resizeImage( $newWidth, $newHeight, $crop = false )
+    public function resizeImage($newWidth, $newHeight, $crop = false)
     {
         $newWidth = intval($newWidth);
         $newHeight = intval($newHeight);
         $resampleImageFile = $this->driver->getSourceImageFile();
         $resampleDimension = $resampleImageFile->getDimension();
-        $resampleDimension->maintainAspectRatio = $this->config->offsetGet( 'maintainAspectRatio' );
+        $resampleDimension->maintainAspectRatio = $this->config->offsetGet('maintainAspectRatio');
 
-        if( $newWidth == $newHeight ) {
-            $this->driver->setResampleImage( $resampleImageFile->withDimension(
+        if ($newWidth == $newHeight) {
+            $this->driver->setResampleImage($resampleImageFile->withDimension(
                 $resampleDimension
-                    ->withOrientation( 'SQUARE' )
-                    ->withFocus( 'CENTER' )
-                    ->withSize( $newWidth, $newHeight )
-            ) );
+                    ->withOrientation('SQUARE')
+                    ->withFocus('CENTER')
+                    ->withSize($newWidth, $newHeight)
+            ));
 
             return $this->driver->resize(true);
         } else {
-            $this->driver->setResampleImage( $resampleImageFile->withDimension(
+            $this->driver->setResampleImage($resampleImageFile->withDimension(
                 $resampleDimension
-                    ->withDirective( $this->config->offsetGet('scaleDirective' ) )
-                    ->withOrientation( $this->config->offsetGet( 'orientation' ) )
-                    ->withFocus( $this->config->offsetGet( 'focus' ) )
-                    ->withSize( $newWidth, $newHeight )
-            ) );
+                    ->withDirective($this->config->offsetGet('scaleDirective'))
+                    ->withOrientation($this->config->offsetGet('orientation'))
+                    ->withFocus($this->config->offsetGet('focus'))
+                    ->withSize($newWidth, $newHeight)
+            ));
 
-            return $this->driver->resize( $crop );
+            return $this->driver->resize($crop);
         }
     }
 
@@ -469,16 +470,16 @@ class Manipulation
      *
      * @return bool
      */
-    public function scaleImage( $newScale )
+    public function scaleImage($newScale)
     {
         $resampleImageFile = $this->driver->getSourceImageFile();
         $resampleDimension = $resampleImageFile->getDimension();
-        $resampleDimension->maintainAspectRatio = $this->config->offsetGet( 'maintainAspectRatio' );
+        $resampleDimension->maintainAspectRatio = $this->config->offsetGet('maintainAspectRatio');
 
-        $this->driver->setResampleImage( $resampleImageFile->withDimension(
+        $this->driver->setResampleImage($resampleImageFile->withDimension(
             $resampleDimension
-                ->withScale( $newScale )
-        ) );
+                ->withScale($newScale)
+        ));
 
         return $this->driver->scale();
     }
@@ -492,9 +493,9 @@ class Manipulation
      *
      * @param \O2System\Image\Abstracts\AbstractWatermark $watermark
      */
-    public function watermarkImage( AbstractWatermark $watermark )
+    public function watermarkImage(AbstractWatermark $watermark)
     {
-        $this->driver->watermark( $watermark );
+        $this->driver->watermark($watermark);
     }
 
     // ------------------------------------------------------------------------
@@ -506,9 +507,9 @@ class Manipulation
      *
      * @param \O2System\Image\Dimension $dimension
      */
-    public function cropImage( Dimension $dimension )
+    public function cropImage(Dimension $dimension)
     {
-        $this->driver->crop( $dimension );
+        $this->driver->crop($dimension);
     }
 
     // ------------------------------------------------------------------------
@@ -522,7 +523,7 @@ class Manipulation
      */
     public function getBlobImage()
     {
-        return $this->driver->blob( $this->config->offsetGet('quality') );
+        return $this->driver->blob($this->config->offsetGet('quality'));
     }
 
     // ------------------------------------------------------------------------
@@ -534,25 +535,26 @@ class Manipulation
      *
      * @return void
      */
-    public function displayImage( $quality = null, $mime = null )
+    public function displayImage($quality = null, $mime = null)
     {
-        $quality = empty( $quality ) ? $this->config->offsetGet( 'quality' ) : $quality;
+        $quality = empty($quality) ? $this->config->offsetGet('quality') : $quality;
 
         $filename = pathinfo($this->driver->getSourceImageFile()->getBasename(), PATHINFO_FILENAME);
-        $extension = pathinfo( $this->driver->getSourceImageFile()->getBasename(), PATHINFO_EXTENSION);
+        $extension = pathinfo($this->driver->getSourceImageFile()->getBasename(), PATHINFO_EXTENSION);
 
-        if( empty( $mime ) ) {
+        if (empty($mime)) {
             $mime = $this->driver->getSourceImageFile()->getMime();
-            $mime = is_array($mime) ? $mime[0] : $mime;
+            $mime = is_array($mime) ? $mime[ 0 ] : $mime;
 
-            $extension = $this->driver->getMimeExtension( $mime );
+            $extension = $this->driver->getMimeExtension($mime);
         }
 
-        if ( $this->saveImage( $tempImageFilePath = rtrim( sys_get_temp_dir(), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
-            $quality )
+        if ($this->saveImage($tempImageFilePath = rtrim(sys_get_temp_dir(),
+                DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
+            $quality)
         ) {
-            $imageBlob = readfile( $tempImageFilePath );
-            unlink( $tempImageFilePath );
+            $imageBlob = readfile($tempImageFilePath);
+            unlink($tempImageFilePath);
         }
 
         header('Content-Transfer-Encoding: binary');
@@ -575,28 +577,28 @@ class Manipulation
      *
      * @return bool
      */
-    public function saveImage( $saveImageFilePath, $quality = null )
+    public function saveImage($saveImageFilePath, $quality = null)
     {
-        $quality = empty( $quality ) ? $this->config->offsetGet( 'quality' ) : $quality;
-        $optimizerConfig = $this->config->offsetGet( 'optimizer' );
+        $quality = empty($quality) ? $this->config->offsetGet('quality') : $quality;
+        $optimizerConfig = $this->config->offsetGet('optimizer');
 
-        if( $this->driver->save( $saveImageFilePath, $quality ) ) {
-            if( $optimizerConfig === 'default' ) {
+        if ($this->driver->save($saveImageFilePath, $quality)) {
+            if ($optimizerConfig === 'default') {
                 $optimizer = new Optimizer();
-                $optimizer->optimize( $saveImageFilePath );
-            } elseif( ! empty( $optimizerConfig['factory'] ) ) {
-                $factory = $optimizerConfig['factory'];
+                $optimizer->optimize($saveImageFilePath);
+            } elseif ( ! empty($optimizerConfig[ 'factory' ])) {
+                $factory = $optimizerConfig[ 'factory' ];
                 $optimizer = new Optimizer();
 
-                switch ( $factory ) {
+                switch ($factory) {
                     case 'imageoptim';
-                    $factory = new Imageoptim();
-                    $factory->setUsername( $optimizerConfig['username'] );
-                    $optimizer->setImageFactory( $factory );
-                    break;
+                        $factory = new Imageoptim();
+                        $factory->setUsername($optimizerConfig[ 'username' ]);
+                        $optimizer->setImageFactory($factory);
+                        break;
                 }
 
-                $optimizer->optimize( $saveImageFilePath );
+                $optimizer->optimize($saveImageFilePath);
             }
 
             return true;

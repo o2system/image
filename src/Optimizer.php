@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image;
@@ -26,24 +27,24 @@ class Optimizer
 {
     protected $imageFactory = null;
 
-    public function setImageFactory( $imageFactory )
+    public function setImageFactory($imageFactory)
     {
-        if( $imageFactory instanceof Imageoptim || $imageFactory instanceof Optimus ) {
+        if ($imageFactory instanceof Imageoptim || $imageFactory instanceof Optimus) {
             $this->imageFactory = $imageFactory;
         }
 
         return $this;
     }
 
-    public function optimize( $imageFilePath )
+    public function optimize($imageFilePath)
     {
-        if( empty( $this->imageFactory ) ) {
-            if(class_exists('\ImageOptimizer\OptimizerFactory')) {
-                ( new OptimizerFactory() )->get()->optimize( $imageFilePath );
+        if (empty($this->imageFactory)) {
+            if (class_exists('\ImageOptimizer\OptimizerFactory')) {
+                (new OptimizerFactory())->get()->optimize($imageFilePath);
             }
-        } elseif( $this->imageFactory instanceof Imageoptim || $this->imageFactory instanceof Optimus ) {
-            $imageString = $this->imageFactory->optimize( $imageFilePath, 'full' );
-            file_put_contents( $imageFilePath, $imageString );
+        } elseif ($this->imageFactory instanceof Imageoptim || $this->imageFactory instanceof Optimus) {
+            $imageString = $this->imageFactory->optimize($imageFilePath, 'full');
+            file_put_contents($imageFilePath, $imageString);
         }
     }
 }

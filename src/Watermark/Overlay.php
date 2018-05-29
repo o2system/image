@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Watermark;
@@ -44,26 +45,6 @@ class Overlay extends AbstractWatermark
     // ------------------------------------------------------------------------
 
     /**
-     * Overlay::setImagePath
-     *
-     * Sets overlay image path.
-     *
-     * @param string $imagePath
-     *
-     * @return static
-     */
-    public function setImagePath( $imagePath )
-    {
-        if ( is_file( $imagePath ) ) {
-            $this->imagePath = realpath( $imagePath );
-        }
-
-        return $this;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Overlay::getImagePath
      *
      * Gets overlay image path.
@@ -78,17 +59,19 @@ class Overlay extends AbstractWatermark
     // ------------------------------------------------------------------------
 
     /**
-     * Overlay::setImageScale
+     * Overlay::setImagePath
      *
-     * Sets overlay image scale.
+     * Sets overlay image path.
      *
-     * @param int $scale
+     * @param string $imagePath
      *
-     * @return $this
+     * @return static
      */
-    public function setImageScale( $scale )
+    public function setImagePath($imagePath)
     {
-        $this->imageScale = (int) $scale;
+        if (is_file($imagePath)) {
+            $this->imagePath = realpath($imagePath);
+        }
 
         return $this;
     }
@@ -104,10 +87,28 @@ class Overlay extends AbstractWatermark
      */
     public function getImageScale()
     {
-        if( ! is_null( $this->imageScale ) ) {
+        if ( ! is_null($this->imageScale)) {
             return $this->imageScale;
         }
 
         return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Overlay::setImageScale
+     *
+     * Sets overlay image scale.
+     *
+     * @param int $scale
+     *
+     * @return $this
+     */
+    public function setImageScale($scale)
+    {
+        $this->imageScale = (int)$scale;
+
+        return $this;
     }
 }

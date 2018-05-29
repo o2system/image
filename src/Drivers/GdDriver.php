@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Drivers;
@@ -38,53 +39,6 @@ class GdDriver extends AbstractDriver
 
         if (is_resource($this->resampleImageResource)) {
             @imagedestroy($this->resampleImageResource);
-        }
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * GdDriver::createFromSource
-     *
-     * Create an image resource from source file.
-     *
-     * @return void
-     */
-    public function createFromSource()
-    {
-        /**
-         * A work-around for some improperly formatted, but
-         * usable JPEGs; known to be produced by Samsung
-         * smartphones' front-facing cameras.
-         *
-         * @see    https://bugs.php.net/bug.php?id=72404
-         */
-        ini_set('gd.jpeg_ignore_warning', 1);
-
-        $mime = $this->sourceImageFile->getMime();
-        $mime = is_array($mime) ? $mime[0] : $mime;
-
-        try {
-            switch ($mime) {
-                case 'image/jpg':
-                case 'image/jpeg':
-                    $this->sourceImageResource = imagecreatefromjpeg($this->sourceImageFile->getRealPath());
-                    break;
-
-                case 'image/gif':
-                    $this->sourceImageResource = imagecreatefromgif($this->sourceImageFile->getRealPath());
-                    break;
-
-                case 'image/png':
-                case 'image/x-png':
-                    $this->sourceImageResource = imagecreatefrompng($this->sourceImageFile->getRealPath());
-                    break;
-            }
-
-            // Convert pallete images to true color images
-            imagepalettetotruecolor($this->sourceImageResource);
-        } catch (\Exception $e) {
-
         }
     }
 
@@ -162,6 +116,7 @@ class GdDriver extends AbstractDriver
      * Resize an image using the given new width and height.
      *
      * @param bool $crop Perform auto crop or not
+     *
      * @return bool
      */
     public function resize($crop = false)
@@ -411,72 +366,6 @@ class GdDriver extends AbstractDriver
         }
     }
 
-    /**
-     * GdDriver::scale
-     *
-     * Scale an image with a given scale.
-     *
-     * @return bool
-     */
-    public function scale()
-    {
-        $sourceDimension = $this->sourceImageFile->getDimension();
-        $resampleDimension = $this->resampleImageFile->getDimension();
-
-        $resampleAxis = $this->resampleImageFile->getDimension()->getAxis();
-        $sourceAxis = $sourceDimension->getAxis();
-
-        if (function_exists('imagecreatetruecolor')) {
-            $this->resampleImageResource = imagecreatetruecolor(
-                $resampleDimension->getWidth(),
-                $resampleDimension->getHeight()
-            );
-
-            imagealphablending($this->resampleImageResource, false);
-            imagesavealpha($this->resampleImageResource, true);
-
-            $transparent = imagecolorallocatealpha($this->resampleImageResource, 255, 255, 255, 127);
-            imagefilledrectangle($this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
-                $resampleDimension->getHeight(), $transparent);
-
-            return imagecopyresampled(
-                $this->resampleImageResource,
-                $this->sourceImageResource,
-                $resampleAxis->getX(),
-                $resampleAxis->getY(),
-                $sourceAxis->getX(),
-                $sourceAxis->getY(),
-                $resampleDimension->getWidth(),
-                $resampleDimension->getHeight(),
-                $sourceDimension->getWidth(),
-                $sourceDimension->getHeight()
-            );
-        } else {
-            $this->resampleImageResource = imagecreate($resampleDimension->getWidth(),
-                $resampleDimension->getHeight());
-
-            imagealphablending($this->resampleImageResource, false);
-            imagesavealpha($this->resampleImageResource, true);
-
-            $transparent = imagecolorallocatealpha($this->resampleImageResource, 255, 255, 255, 127);
-            imagefilledrectangle($this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
-                $resampleDimension->getHeight(), $transparent);
-
-            return imagecopyresized(
-                $this->resampleImageResource,
-                $this->sourceImageResource,
-                $resampleAxis->getX(),
-                $resampleAxis->getY(),
-                $sourceAxis->getX(),
-                $sourceAxis->getY(),
-                $resampleDimension->getWidth(),
-                $resampleDimension->getHeight(),
-                $sourceDimension->getWidth(),
-                $sourceDimension->getHeight()
-            );
-        }
-    }
-
     // ------------------------------------------------------------------------
 
     /**
@@ -493,9 +382,9 @@ class GdDriver extends AbstractDriver
         $resampleImageResource =& $this->getResampleImageResource();
 
         if (false !== ($resampleCropImage = imagecrop($resampleImageResource, [
-                'x' => $dimension->getAxis()->getX(),
-                'y' => $dimension->getAxis()->getY(),
-                'width' => $dimension->getWidth(),
+                'x'      => $dimension->getAxis()->getX(),
+                'y'      => $dimension->getAxis()->getY(),
+                'width'  => $dimension->getWidth(),
                 'height' => $dimension->getHeight(),
             ]))
         ) {
@@ -506,8 +395,6 @@ class GdDriver extends AbstractDriver
 
         return false;
     }
-
-    // ------------------------------------------------------------------------
 
     /**
      * GdDriver::watermark
@@ -526,17 +413,17 @@ class GdDriver extends AbstractDriver
             $textBox = imagettfbbox($watermark->getFontSize(), $watermark->getAngle(), $watermark->getFontPath(),
                 $watermark->getString());
 
-            if ($textBox[0] < 0 and $textBox[6]) {
-                $textBox[1] += $textBox[0];
-                $textBox[3] += $textBox[0];
-                $textBox[5] += $textBox[0];
-                $textBox[7] += $textBox[0];
+            if ($textBox[ 0 ] < 0 and $textBox[ 6 ]) {
+                $textBox[ 1 ] += $textBox[ 0 ];
+                $textBox[ 3 ] += $textBox[ 0 ];
+                $textBox[ 5 ] += $textBox[ 0 ];
+                $textBox[ 7 ] += $textBox[ 0 ];
             }
 
             $textBox = array_map('abs', $textBox);
 
-            $watermarkImageWidth = max($textBox[0], $textBox[2], $textBox[4], $textBox[6]);
-            $watermarkImageHeight = max($textBox[1], $textBox[3], $textBox[5], $textBox[7]);
+            $watermarkImageWidth = max($textBox[ 0 ], $textBox[ 2 ], $textBox[ 4 ], $textBox[ 6 ]);
+            $watermarkImageHeight = max($textBox[ 1 ], $textBox[ 3 ], $textBox[ 5 ], $textBox[ 7 ]);
 
             if (false !== ($watermarkAxis = $watermark->getAxis())) {
                 $watermarkImageAxisX = $watermarkAxis->getX();
@@ -600,9 +487,9 @@ class GdDriver extends AbstractDriver
              * hex values:
              */
             $textColor = str_split(substr($watermark->getFontColor(), 1, 6), 2);
-            $textColor = imagecolorclosest($resampleImageResource, hexdec($textColor[0]),
-                hexdec($textColor[1]),
-                hexdec($textColor[2]));
+            $textColor = imagecolorclosest($resampleImageResource, hexdec($textColor[ 0 ]),
+                hexdec($textColor[ 1 ]),
+                hexdec($textColor[ 2 ]));
 
             imagettftext(
                 $resampleImageResource,
@@ -720,6 +607,121 @@ class GdDriver extends AbstractDriver
     // ------------------------------------------------------------------------
 
     /**
+     * GdDriver::createFromSource
+     *
+     * Create an image resource from source file.
+     *
+     * @return void
+     */
+    public function createFromSource()
+    {
+        /**
+         * A work-around for some improperly formatted, but
+         * usable JPEGs; known to be produced by Samsung
+         * smartphones' front-facing cameras.
+         *
+         * @see    https://bugs.php.net/bug.php?id=72404
+         */
+        ini_set('gd.jpeg_ignore_warning', 1);
+
+        $mime = $this->sourceImageFile->getMime();
+        $mime = is_array($mime) ? $mime[ 0 ] : $mime;
+
+        try {
+            switch ($mime) {
+                case 'image/jpg':
+                case 'image/jpeg':
+                    $this->sourceImageResource = imagecreatefromjpeg($this->sourceImageFile->getRealPath());
+                    break;
+
+                case 'image/gif':
+                    $this->sourceImageResource = imagecreatefromgif($this->sourceImageFile->getRealPath());
+                    break;
+
+                case 'image/png':
+                case 'image/x-png':
+                    $this->sourceImageResource = imagecreatefrompng($this->sourceImageFile->getRealPath());
+                    break;
+            }
+
+            // Convert pallete images to true color images
+            imagepalettetotruecolor($this->sourceImageResource);
+        } catch (\Exception $e) {
+
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * GdDriver::scale
+     *
+     * Scale an image with a given scale.
+     *
+     * @return bool
+     */
+    public function scale()
+    {
+        $sourceDimension = $this->sourceImageFile->getDimension();
+        $resampleDimension = $this->resampleImageFile->getDimension();
+
+        $resampleAxis = $this->resampleImageFile->getDimension()->getAxis();
+        $sourceAxis = $sourceDimension->getAxis();
+
+        if (function_exists('imagecreatetruecolor')) {
+            $this->resampleImageResource = imagecreatetruecolor(
+                $resampleDimension->getWidth(),
+                $resampleDimension->getHeight()
+            );
+
+            imagealphablending($this->resampleImageResource, false);
+            imagesavealpha($this->resampleImageResource, true);
+
+            $transparent = imagecolorallocatealpha($this->resampleImageResource, 255, 255, 255, 127);
+            imagefilledrectangle($this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(), $transparent);
+
+            return imagecopyresampled(
+                $this->resampleImageResource,
+                $this->sourceImageResource,
+                $resampleAxis->getX(),
+                $resampleAxis->getY(),
+                $sourceAxis->getX(),
+                $sourceAxis->getY(),
+                $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(),
+                $sourceDimension->getWidth(),
+                $sourceDimension->getHeight()
+            );
+        } else {
+            $this->resampleImageResource = imagecreate($resampleDimension->getWidth(),
+                $resampleDimension->getHeight());
+
+            imagealphablending($this->resampleImageResource, false);
+            imagesavealpha($this->resampleImageResource, true);
+
+            $transparent = imagecolorallocatealpha($this->resampleImageResource, 255, 255, 255, 127);
+            imagefilledrectangle($this->resampleImageResource, 0, 0, $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(), $transparent);
+
+            return imagecopyresized(
+                $this->resampleImageResource,
+                $this->sourceImageResource,
+                $resampleAxis->getX(),
+                $resampleAxis->getY(),
+                $sourceAxis->getX(),
+                $sourceAxis->getY(),
+                $resampleDimension->getWidth(),
+                $resampleDimension->getHeight(),
+                $sourceDimension->getWidth(),
+                $sourceDimension->getHeight()
+            );
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * GdDriver::display
      *
      * Display an image.
@@ -729,31 +731,31 @@ class GdDriver extends AbstractDriver
     public function display($quality = 100, $mime = null)
     {
         $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
-        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
+        $extension = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        if( empty( $mime ) ) {
+        if (empty($mime)) {
             $mime = $this->sourceImageFile->getMime();
-            $mime = is_array($mime) ? $mime[0] : $mime;
+            $mime = is_array($mime) ? $mime[ 0 ] : $mime;
 
             $extensions = [
-                'image/gif' => 'gif',
-                'image/jpg' => 'jpg',
+                'image/gif'  => 'gif',
+                'image/jpg'  => 'jpg',
                 'image/jpeg' => 'jpeg',
-                'image/png' => 'png',
-                'image/webp' => 'webp'
+                'image/png'  => 'png',
+                'image/webp' => 'webp',
             ];
 
             $extension = $extensions[ $mime ];
         }
 
-        header('Content-Disposition: filename=' . $filename . '.' . $extension );
-        header( 'Content-Transfer-Encoding: binary' );
-        header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
-        header( 'Content-Type: ' . $mime );
+        header('Content-Disposition: filename=' . $filename . '.' . $extension);
+        header('Content-Transfer-Encoding: binary');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s', time()) . ' GMT');
+        header('Content-Type: ' . $mime);
 
-        $blob = $this->blob( $quality, $mime );
+        $blob = $this->blob($quality, $mime);
 
-        header( 'ETag: ' . md5( $blob ) );
+        header('ETag: ' . md5($blob));
 
         echo $blob;
 
@@ -774,20 +776,21 @@ class GdDriver extends AbstractDriver
         $imageBlob = '';
 
         $filename = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_FILENAME);
-        $extension = pathinfo( $this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
+        $extension = pathinfo($this->sourceImageFile->getBasename(), PATHINFO_EXTENSION);
 
-        if( empty( $mime ) ) {
+        if (empty($mime)) {
             $mime = $this->sourceImageFile->getMime();
-            $mime = is_array($mime) ? $mime[0] : $mime;
+            $mime = is_array($mime) ? $mime[ 0 ] : $mime;
 
-            $extension = $this->getMimeExtension( $mime );
+            $extension = $this->getMimeExtension($mime);
         }
 
-        if ( $this->save( $tempImageFilePath = rtrim( sys_get_temp_dir(), DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
-            $quality )
+        if ($this->save($tempImageFilePath = rtrim(sys_get_temp_dir(),
+                DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $filename . '.' . $extension,
+            $quality)
         ) {
-            $imageBlob = readfile( $tempImageFilePath );
-            unlink( $tempImageFilePath );
+            $imageBlob = readfile($tempImageFilePath);
+            unlink($tempImageFilePath);
         }
 
         return $imageBlob;
@@ -801,7 +804,7 @@ class GdDriver extends AbstractDriver
      * Save an image.
      *
      * @param string $imageTargetFilePath
-     * @param int $quality
+     * @param int    $quality
      *
      * @return bool
      */

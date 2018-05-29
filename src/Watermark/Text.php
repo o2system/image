@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Watermark;
@@ -80,54 +81,6 @@ class Text extends AbstractWatermark
     // ------------------------------------------------------------------------
 
     /**
-     * Text::setFontPath
-     *
-     * Sets text font path.
-     *
-     * @param $fontPath
-     *
-     * @return $this
-     */
-    public function setFontPath( $fontPath )
-    {
-        if ( is_file( $fontPath ) ) {
-            $this->fontTruetype = true;
-            $this->fontPath = $fontPath;
-        }
-
-        return $this;
-    }
-
-    // ------------------------------------------------------------------------
-
-    public function setFontSize( $fontSize )
-    {
-        $this->fontSize = (int)$fontSize;
-
-        return $this;
-    }
-
-    // ------------------------------------------------------------------------
-
-    public function setFontColor( $fontColor )
-    {
-        $this->fontColor = '#' . ltrim( $fontColor, '#' );
-
-        return $this;
-    }
-
-    // -------------------------------------------------------------------------
-
-    public function setString( $string )
-    {
-        $this->string = trim( $string );
-
-        return $this;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Text::signature
      *
      * Create a signature text image watermark with Jellyka Saint-Andrew's Queen Truetype Font.
@@ -138,14 +91,14 @@ class Text extends AbstractWatermark
      *
      * @return static
      */
-    public function signature( $string, $size = 25, $color = 'ffffff' )
+    public function signature($string, $size = 25, $color = 'ffffff')
     {
-        $this->setFontPath( __DIR__ . DIRECTORY_SEPARATOR . 'Fonts/Jellyka_Saint-Andrew\'s_Queen.ttf' )
-            ->setFontSize( $size )
-            ->setFontColor( $color )
-            ->setString( $string );
+        $this->setFontPath(__DIR__ . DIRECTORY_SEPARATOR . 'Fonts/Jellyka_Saint-Andrew\'s_Queen.ttf')
+            ->setFontSize($size)
+            ->setFontColor($color)
+            ->setString($string);
 
-        if ( $this->position === 'AUTO' ) {
+        if ($this->position === 'AUTO') {
             $this->position = 'CENTER';
         }
 
@@ -165,14 +118,14 @@ class Text extends AbstractWatermark
      *
      * @return $this
      */
-    public function copyright( $string, $size = 10, $color = 'ffffff' )
+    public function copyright($string, $size = 10, $color = 'ffffff')
     {
-        $this->setFontPath( __DIR__ . DIRECTORY_SEPARATOR . 'Fonts/ExpresswayRg-Regular.ttf' )
-            ->setFontSize( $size )
-            ->setFontColor( $color )
-            ->setString( $string );
+        $this->setFontPath(__DIR__ . DIRECTORY_SEPARATOR . 'Fonts/ExpresswayRg-Regular.ttf')
+            ->setFontSize($size)
+            ->setFontColor($color)
+            ->setString($string);
 
-        if ( $this->position === 'AUTO' ) {
+        if ($this->position === 'AUTO') {
             $this->position = 'BOTTOM_LEFT';
         }
 
@@ -193,6 +146,27 @@ class Text extends AbstractWatermark
         return $this->fontPath;
     }
 
+    // -------------------------------------------------------------------------
+
+    /**
+     * Text::setFontPath
+     *
+     * Sets text font path.
+     *
+     * @param $fontPath
+     *
+     * @return $this
+     */
+    public function setFontPath($fontPath)
+    {
+        if (is_file($fontPath)) {
+            $this->fontTruetype = true;
+            $this->fontPath = $fontPath;
+        }
+
+        return $this;
+    }
+
     // ------------------------------------------------------------------------
 
     /**
@@ -205,6 +179,15 @@ class Text extends AbstractWatermark
     public function getFontSize()
     {
         return $this->fontSize;
+    }
+
+    // ------------------------------------------------------------------------
+
+    public function setFontSize($fontSize)
+    {
+        $this->fontSize = (int)$fontSize;
+
+        return $this;
     }
 
     // ------------------------------------------------------------------------
@@ -223,6 +206,15 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    public function setFontColor($fontColor)
+    {
+        $this->fontColor = '#' . ltrim($fontColor, '#');
+
+        return $this;
+    }
+
+    // ------------------------------------------------------------------------
+
     /**
      * Text::getString
      *
@@ -233,6 +225,15 @@ class Text extends AbstractWatermark
     public function getString()
     {
         return $this->string;
+    }
+
+    // ------------------------------------------------------------------------
+
+    public function setString($string)
+    {
+        $this->string = trim($string);
+
+        return $this;
     }
 
     // ------------------------------------------------------------------------

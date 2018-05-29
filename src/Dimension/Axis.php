@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Dimension;
@@ -47,7 +48,7 @@ class Axis
      * @param int $x Image x axis.
      * @param int $y Image y axis.
      */
-    public function __construct( $x = 0, $y = 0 )
+    public function __construct($x = 0, $y = 0)
     {
         $this->x = (int)$x;
         $this->y = (int)$y;
@@ -62,10 +63,10 @@ class Axis
      *
      * @return static
      */
-    public function withX( $x )
+    public function withX($x)
     {
         $newAxis = clone $this;
-        $newAxis->x = (int) $x;
+        $newAxis->x = (int)$x;
 
         return $newAxis;
     }
@@ -79,10 +80,10 @@ class Axis
      *
      * @return static
      */
-    public function withY( $y )
+    public function withY($y)
     {
         $newAxis = clone $this;
-        $newAxis->y = (int) $y;
+        $newAxis->y = (int)$y;
 
         return $newAxis;
     }

@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image;
@@ -96,24 +97,24 @@ class Dimension
      * @param int $width  Image width.
      * @param int $height Image height.
      */
-    public function __construct( $width, $height, $x = 0, $y = 0 )
+    public function __construct($width, $height, $x = 0, $y = 0)
     {
         $this->width = (int)$width;
         $this->height = (int)$height;
 
-        $this->axis = new Axis( $x, $y );
+        $this->axis = new Axis($x, $y);
     }
 
     // ------------------------------------------------------------------------
 
     public function getOrientation()
     {
-        if ( $this->orientation === 'AUTO' ) {
-            if ( $this->width > $this->height ) {
+        if ($this->orientation === 'AUTO') {
+            if ($this->width > $this->height) {
                 $this->orientation = 'LANDSCAPE';
-            } elseif ( $this->width < $this->height ) {
+            } elseif ($this->width < $this->height) {
                 $this->orientation = 'PORTRAIT';
-            } elseif( $this->width == $this->height ) {
+            } elseif ($this->width == $this->height) {
                 $this->orientation = 'SQUARE';
             }
         }
@@ -136,11 +137,11 @@ class Dimension
      *
      * @return Dimension
      */
-    public function withOrientation( $orientation )
+    public function withOrientation($orientation)
     {
         $newDimension = clone $this;
 
-        if ( in_array( $orientation, [ 'AUTO', 'LANDSCAPE', 'PORTRAIT', 'SQUARE' ] ) ) {
+        if (in_array($orientation, ['AUTO', 'LANDSCAPE', 'PORTRAIT', 'SQUARE'])) {
             $newDimension->orientation = $orientation;
         }
 
@@ -156,12 +157,11 @@ class Dimension
      *
      * return Dimension
      */
-    public function withDirective( $directive )
+    public function withDirective($directive)
     {
         $newDimension = clone $this;
 
-        if( in_array( $directive, [ 'RATIO', 'UP', 'DOWN' ]) )
-        {
+        if (in_array($directive, ['RATIO', 'UP', 'DOWN'])) {
             $newDimension->directive = $directive;
         }
 
@@ -210,12 +210,12 @@ class Dimension
      *
      * @return Dimension
      */
-    public function withFocus( $focus )
+    public function withFocus($focus)
     {
         $newDimension = clone $this;
 
-        if ( in_array( $focus,
-            [ 'CENTER', 'NORTH', 'NORTHWEST', 'NORTHEAST', 'SOUTH', 'SOUTHWEST', 'SOUTHEAST', 'EAST', 'WEST' ] ) ) {
+        if (in_array($focus,
+            ['CENTER', 'NORTH', 'NORTHWEST', 'NORTHEAST', 'SOUTH', 'SOUTHWEST', 'SOUTHEAST', 'EAST', 'WEST'])) {
             $newDimension->quadrant = $focus;
         }
 
@@ -247,12 +247,117 @@ class Dimension
      *
      * @return Dimension
      */
-    public function withAxis( Axis $axis )
+    public function withAxis(Axis $axis)
     {
         $newDimension = clone $this;
         $newDimension->axis = $axis;
 
         return $newDimension;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Dimension::getRatio
+     *
+     * Gets image dimension ratio.
+     *
+     * @return int
+     */
+    public function getRatio()
+    {
+        return (int)round($this->width / $this->height);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Dimension::withWidth
+     *
+     * Gets new image dimension with defined width.
+     *
+     * @param int $newWidth New image width.
+     *
+     * @return \O2System\Image\Dimension
+     */
+    public function withWidth($newWidth)
+    {
+        return $this->withSize($newWidth, ceil($newWidth * $this->height / $this->width));
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Dimension::withSize
+     *
+     * Gets new image dimension with defined width and height.
+     *
+     * @param int $newWidth  New image width.
+     * @param int $newHeight New image height.
+     *
+     * @return \O2System\Image\Dimension
+     */
+    public function withSize($newWidth, $newHeight)
+    {
+        $newDimension = clone $this;
+
+        if ($newWidth == 0 && $newHeight > 0) {
+            $newDimension->withHeight($newHeight);
+            $newWidth = $newDimension->getWidth();
+        } else {
+            if ($newWidth > 0 && $newHeight == 0) {
+                $newDimension->withWidth($newWidth);
+                $newHeight = $newDimension->getHeight();
+            }
+        }
+
+        $targetDimension = clone $this;
+
+        if ($this->directive === 'UP') {
+            if ($newWidth > $this->width) {
+                $targetDimension->width = $newWidth;
+                $targetDimension->height = $newHeight;
+
+                return $targetDimension;
+            } elseif ($newWidth < $this->width) {
+                return $targetDimension;
+            }
+        } elseif ($this->directive === 'DOWN') {
+            if ($newWidth > $this->width) {
+                return $targetDimension;
+            } elseif ($newWidth < $this->width) {
+                $targetDimension->width = $newWidth;
+                $targetDimension->height = $newHeight;
+
+                return $targetDimension;
+            }
+        }
+
+        if ($this->maintainAspectRatio) {
+            $targetDimension->width = $newWidth > $this->width ? $this->width : $newWidth;
+            $targetDimension->height = $newHeight > $this->height ? $this->height : $newHeight;
+        } else {
+            $targetDimension->width = (int)$newWidth;
+            $targetDimension->height = (int)$newHeight;
+        }
+
+        return $targetDimension;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Dimension::withHeight
+     *
+     * Gets new image dimension with defined height.
+     *
+     * @param int $newHeight New image height.
+     *
+     * @return \O2System\Image\Dimension
+     */
+    public function withHeight($newHeight)
+    {
+        return $this->withSize(ceil($this->width * $newHeight / $this->height), $newHeight);
     }
 
     // ------------------------------------------------------------------------
@@ -286,107 +391,6 @@ class Dimension
     // ------------------------------------------------------------------------
 
     /**
-     * Dimension::getRatio
-     *
-     * Gets image dimension ratio.
-     *
-     * @return int
-     */
-    public function getRatio()
-    {
-        return (int)round( $this->width / $this->height );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Dimension::withWidth
-     *
-     * Gets new image dimension with defined width.
-     *
-     * @param int $newWidth New image width.
-     *
-     * @return \O2System\Image\Dimension
-     */
-    public function withWidth( $newWidth )
-    {
-        return $this->withSize( $newWidth, ceil( $newWidth * $this->height / $this->width ) );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Dimension::withHeight
-     *
-     * Gets new image dimension with defined height.
-     *
-     * @param int $newHeight New image height.
-     *
-     * @return \O2System\Image\Dimension
-     */
-    public function withHeight( $newHeight )
-    {
-        return $this->withSize( ceil( $this->width * $newHeight / $this->height ), $newHeight );
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * Dimension::withSize
-     *
-     * Gets new image dimension with defined width and height.
-     *
-     * @param int $newWidth  New image width.
-     * @param int $newHeight New image height.
-     *
-     * @return \O2System\Image\Dimension
-     */
-    public function withSize( $newWidth, $newHeight )
-    {
-        $newDimension = clone $this;
-
-        if( $newWidth == 0 && $newHeight > 0 ) {
-            $newDimension->withHeight( $newHeight );
-            $newWidth = $newDimension->getWidth();
-        } else if( $newWidth > 0 && $newHeight == 0 ) {
-            $newDimension->withWidth( $newWidth );
-            $newHeight = $newDimension->getHeight();
-        }
-
-        $targetDimension = clone $this;
-
-        if( $this->directive === 'UP' ) {
-            if( $newWidth > $this->width ) {
-                $targetDimension->width = $newWidth;
-                $targetDimension->height = $newHeight;
-                return $targetDimension;
-            } elseif( $newWidth < $this->width ) {
-                return $targetDimension;
-            }
-        } elseif( $this->directive === 'DOWN' ) {
-            if( $newWidth > $this->width ) {
-                return $targetDimension;
-            } elseif( $newWidth < $this->width ) {
-                $targetDimension->width = $newWidth;
-                $targetDimension->height = $newHeight;
-                return $targetDimension;
-            }
-        }
-
-        if( $this->maintainAspectRatio ) {
-            $targetDimension->width = $newWidth > $this->width ? $this->width : $newWidth;
-            $targetDimension->height = $newHeight > $this->height ? $this->height : $newHeight;
-        } else {
-            $targetDimension->width = (int)$newWidth;
-            $targetDimension->height = (int)$newHeight;
-        }
-
-        return $targetDimension;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * Dimension::withScale
      *
      * Gets new image dimension with defined scale.
@@ -395,13 +399,13 @@ class Dimension
      *
      * @return \O2System\Image\Dimension
      */
-    public function withScale( $scale )
+    public function withScale($scale)
     {
         $newDimension = clone $this;
 
         return $newDimension->withSize(
-            round( $this->width * ( $scale / 100 ) ),
-            round( $this->height * ( $scale / 100 ) )
+            round($this->width * ($scale / 100)),
+            round($this->height * ($scale / 100))
         );
     }
 }

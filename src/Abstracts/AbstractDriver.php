@@ -8,6 +8,7 @@
  * @author         Steeve Andrian Salim
  * @copyright      Copyright (c) Steeve Andrian Salim
  */
+
 // ------------------------------------------------------------------------
 
 namespace O2System\Image\Abstracts;
@@ -79,10 +80,10 @@ abstract class AbstractDriver
      *
      * @return bool
      */
-    public function setSourceImage( $imageFilePath )
+    public function setSourceImage($imageFilePath)
     {
-        if ( is_file( $imageFilePath ) ) {
-            $this->sourceImageFile = new File( $imageFilePath );
+        if (is_file($imageFilePath)) {
+            $this->sourceImageFile = new File($imageFilePath);
             $this->resampleImageFile = $this->sourceImageFile;
 
             return true;
@@ -102,7 +103,7 @@ abstract class AbstractDriver
      *
      * @return static
      */
-    public function setResampleImage( File $resampleFile )
+    public function setResampleImage(File $resampleFile)
     {
         $this->resampleImageFile = $resampleFile;
 
@@ -140,38 +141,6 @@ abstract class AbstractDriver
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractDriver::getImageResource
-     *
-     * Gets library image resource.
-     *
-     * @return resource
-     */
-    protected function &getSourceImageResource()
-    {
-        return $this->sourceImageResource;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
-     * AbstractDriver::getImageOnProcess
-     *
-     * Gets library image on process resource.
-     *
-     * @return resource
-     */
-    protected function &getResampleImageResource()
-    {
-        if ( ! is_resource( $this->resampleImageResource ) ) {
-            $this->resampleImageResource = $this->sourceImageResource;
-        }
-
-        return $this->resampleImageResource;
-    }
-
-    // ------------------------------------------------------------------------
-
-    /**
      * AbstractDriver::hasErrors
      *
      * Gets library image errors.
@@ -180,7 +149,7 @@ abstract class AbstractDriver
      */
     public function hasErrors()
     {
-        if ( count( $this->errors ) ) {
+        if (count($this->errors)) {
             return true;
         }
 
@@ -212,7 +181,7 @@ abstract class AbstractDriver
      */
     public function getTotalErrors()
     {
-        return count( $this->errors );
+        return count($this->errors);
     }
 
     // ------------------------------------------------------------------------
@@ -226,22 +195,24 @@ abstract class AbstractDriver
      *
      * @return bool|string
      */
-    public function getMimeExtension( $mime )
+    public function getMimeExtension($mime)
     {
         $extensions = [
-            'image/gif' => 'gif',
-            'image/jpg' => 'jpg',
+            'image/gif'  => 'gif',
+            'image/jpg'  => 'jpg',
             'image/jpeg' => 'jpeg',
-            'image/png' => 'png',
-            'image/webp' => 'webp'
+            'image/png'  => 'png',
+            'image/webp' => 'webp',
         ];
 
-        if( array_key_exists( $mime, $extensions) ) {
+        if (array_key_exists($mime, $extensions)) {
             return $extensions[ $mime ];
         }
 
         return false;
     }
+
+    // ------------------------------------------------------------------------
 
     /**
      * AbstractDriver::createFromSource
@@ -263,9 +234,7 @@ abstract class AbstractDriver
      *
      * @return void
      */
-    abstract public function createFromString( $imageString );
-
-    // ------------------------------------------------------------------------
+    abstract public function createFromString($imageString);
 
     /**
      * AbstractDriver::rotate
@@ -276,7 +245,7 @@ abstract class AbstractDriver
      *
      * @return void
      */
-    abstract public function rotate( $degrees );
+    abstract public function rotate($degrees);
 
     // ------------------------------------------------------------------------
 
@@ -311,7 +280,7 @@ abstract class AbstractDriver
      *
      * @return void
      */
-    abstract public function flip( $axis );
+    abstract public function flip($axis);
 
     // ------------------------------------------------------------------------
 
@@ -322,7 +291,7 @@ abstract class AbstractDriver
      *
      * @return void
      */
-    abstract public function display( $quality = 100, $mime = null );
+    abstract public function display($quality = 100, $mime = null);
 
     // ------------------------------------------------------------------------
 
@@ -333,7 +302,7 @@ abstract class AbstractDriver
      *
      * @return string
      */
-    abstract public function blob( $quality = 100, $mime = null );
+    abstract public function blob($quality = 100, $mime = null);
 
     // ------------------------------------------------------------------------
 
@@ -347,5 +316,37 @@ abstract class AbstractDriver
      *
      * @return bool
      */
-    abstract public function save( $imageTargetFilePath, $quality = 100 );
+    abstract public function save($imageTargetFilePath, $quality = 100);
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractDriver::getImageResource
+     *
+     * Gets library image resource.
+     *
+     * @return resource
+     */
+    protected function &getSourceImageResource()
+    {
+        return $this->sourceImageResource;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * AbstractDriver::getImageOnProcess
+     *
+     * Gets library image on process resource.
+     *
+     * @return resource
+     */
+    protected function &getResampleImageResource()
+    {
+        if ( ! is_resource($this->resampleImageResource)) {
+            $this->resampleImageResource = $this->sourceImageResource;
+        }
+
+        return $this->resampleImageResource;
+    }
 }
