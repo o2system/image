@@ -1,3 +1,18 @@
+<div align="center" markdown="1">
+
+[![O2System Framework](http://o2system.id/assets/img/logo/logo-white-200px.png?logo)](http://o2system.id)
+</div>
+
+<div align="center" markdown="1">
+
+[![Build Status](https://scrutinizer-ci.com/g/o2system/image/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/image/build-status/master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/image/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/image/?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/o2system/image/v/stable)](https://packagist.org/packages/o2system/image)
+[![Total Downloads](https://poser.pugx.org/o2system/image/downloads)](https://packagist.org/packages/o2system/image)
+[![License](https://poser.pugx.org/o2system/image/license)](https://packagist.org/packages/o2system/image)
+
+</div>
+
 # O2System Image
 O2System Image is a PHP image handling and manipulation library for O2System Framework which provides an easier and expressive way to manipulate an image. It allows different PHP Image Processor and Generator to be used.
 
