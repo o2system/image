@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -229,6 +229,13 @@ class Text extends AbstractWatermark
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Text::setString
+     *
+     * @param $string
+     *
+     * @return static
+     */
     public function setString($string)
     {
         $this->string = trim($string);

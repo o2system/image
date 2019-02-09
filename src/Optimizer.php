@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -25,8 +25,22 @@ use O2System\Image\Optimizers\Optimus;
  */
 class Optimizer
 {
+    /**
+     * Optimizer::$imageFactory
+     *
+     * @var Imageoptim|Optimus
+     */
     protected $imageFactory = null;
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Optimizer::setImageFactory
+     *
+     * @param $imageFactory
+     *
+     * @return static
+     */
     public function setImageFactory($imageFactory)
     {
         if ($imageFactory instanceof Imageoptim || $imageFactory instanceof Optimus) {
@@ -36,6 +50,15 @@ class Optimizer
         return $this;
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Optimizer::optimize
+     *
+     * @param string $imageFilePath
+     *
+     * @throws \Exception
+     */
     public function optimize($imageFilePath)
     {
         if (empty($this->imageFactory)) {
