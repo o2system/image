@@ -35,7 +35,7 @@
     "github-wiki": "http://github.com/o2system/image/wiki"
   },
   "require": {
-    "php": "~7.2.0",
+    "php": "^7.2.0",
     "o2system/filesystem": "*",
     "ps/image-optimizer": "^1.1"
   },
