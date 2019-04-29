@@ -1,3 +1,11 @@
+[![O2System Framework](http://o2system.id/assets/img/logo/logo-white-200px.png?logo)](http://o2system.id)
+
+[![Build Status](https://scrutinizer-ci.com/g/o2system/image/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/image/build-status/master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/image/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/image/?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/o2system/image/v/stable)](https://packagist.org/packages/o2system/image)
+[![Total Downloads](https://poser.pugx.org/o2system/image/downloads)](https://packagist.org/packages/o2system/image)
+[![License](https://poser.pugx.org/o2system/image/license)](https://packagist.org/packages/o2system/image)
+
 # O2System Image
 O2System Image is a PHP image handling and manipulation library for O2System Framework which provides an easier and expressive way to manipulate an image. It allows different PHP Image Processor and Generator to be used.
 
@@ -42,22 +50,16 @@ $manipulation->saveImage( 'path/to/save/images/kawah-putih.jpg' );
 Documentation is available on this repository [wiki](https://github.com/o2system/image/wiki) or visit this repository [github page](https://o2system.github.io/image).
 
 ### Ideas and Suggestions
-Please kindly mail us at [o2system.framework@gmail.com](mailto:o2system.framework@gmail.com])
+Please kindly mail us at [contact@o2system.id](mailto:contact@o2system.id])
 
 ### Bugs and Issues
 Please kindly submit your [issues at Github](http://github.com/o2system/image/issues) so we can track all the issues along development and send a [pull request](http://github.com/o2system/image/pulls) to this repository.
 
 ### System Requirements
-- PHP 5.6+
+- PHP 7.2+
 - [Composer](https://getcomposer.org)
 - [O2System Kernel](https://github.com/o2system/kernel)
-
-### Credits
-|Role|Name|
-|----|----|
-|Founder and Lead Projects|[Steeven Andrian Salim](http://steevenz.com)|
-|Documentation|[Steeven Andrian Salim](http://steevenz.com)
-|Github Pages Designer| [Teguh Rianto](http://teguhrianto.tk)
+- [Image Optimizer](https://github.com/psliwa/image-optimizer) by [Piotr Śliwa](https://github.com/psliwa)
 
 ### Fonts Credits
 * Jellyka Saint Andrew's Queen by [Jellyka Neveran](http://www.cuttyfruty.com/enhtml/jellyka.php) used as default signature font.

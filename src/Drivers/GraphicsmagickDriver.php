@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -30,7 +30,8 @@ use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException;
 class GraphicsmagickDriver extends AbstractDriver
 {
     /**
-     * GraphicsmagickDriver constructor.
+     * GraphicsmagickDriver::__construct
+     *
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException
      */
     public function __construct()
@@ -66,6 +67,7 @@ class GraphicsmagickDriver extends AbstractDriver
      * @param string $imageString Image string.
      *
      * @return bool
+     * @throws \GmagickException
      */
     public function createFromString($imageString)
     {
@@ -218,6 +220,11 @@ class GraphicsmagickDriver extends AbstractDriver
 
     // ------------------------------------------------------------------------
 
+    /**
+     * GraphicsmagickDriver::resizeCrop
+     *
+     * @return bool
+     */
     protected function resizeCrop()
     {
         $sourceDimension = $this->sourceImageFile->getDimension();
@@ -364,13 +371,14 @@ class GraphicsmagickDriver extends AbstractDriver
     }
 
     /**
-     * ImagemagickDriver::watermark
+     * GraphicsmagickDriver::watermark
      *
      * Watermark an image.
      *
      * @param \O2System\Image\Abstracts\AbstractWatermark $watermark
      *
      * @return bool
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException
      */
     public function watermark(AbstractWatermark $watermark)
     {
@@ -630,7 +638,7 @@ class GraphicsmagickDriver extends AbstractDriver
     // ------------------------------------------------------------------------
 
     /**
-     * ImagemagickDriver::blob
+     * GraphicsmagickDriver::blob
      *
      * Returns image string blob.
      *

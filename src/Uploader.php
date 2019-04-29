@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -66,6 +66,13 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Uploader::__construct
+     *
+     * @param array $config
+     *
+     * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadDependencyCallException
+     */
     public function __construct(array $config = [])
     {
         language()
@@ -75,6 +82,15 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
         parent::__construct($config);
     }
 
+    // ------------------------------------------------------------------------
+
+    /**
+     * Uploader::setMinWidthSize
+     *
+     * @param int $size
+     *
+     * @return static
+     */
     public function setMinWidthSize($size)
     {
         $this->allowedImageSize[ 'width' ][ 'min' ] = (int)$size;
@@ -84,6 +100,13 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Uploader::setMaxWidthSize
+     *
+     * @param int $size
+     *
+     * @return static
+     */
     public function setMaxWidthSize($size)
     {
         $this->allowedImageSize[ 'width' ][ 'max' ] = (int)$size;
@@ -93,6 +116,13 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Uploader::setMinHeightSize
+     *
+     * @param int $size
+     *
+     * @return static
+     */
     public function setMinHeightSize($size)
     {
         $this->allowedImageSize[ 'height' ][ 'min' ] = (int)$size;
@@ -102,6 +132,13 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Uploader::setMaxHeightSize
+     *
+     * @param int $size
+     *
+     * @return static
+     */
     public function setMaxHeightSize($size)
     {
         $this->allowedImageSize[ 'height' ][ 'max' ] = (int)$size;
@@ -111,6 +148,13 @@ class Uploader extends \O2System\Filesystem\Handlers\Uploader
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Uploader::validate
+     *
+     * @param \O2System\Kernel\Http\Message\UploadFile $file
+     *
+     * @return bool
+     */
     protected function validate(UploadFile $file)
     {
         if (parent::validate($file)) {

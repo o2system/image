@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,12 +15,12 @@ namespace O2System\Image;
 
 // ------------------------------------------------------------------------
 
-use O2System\Spl\Datastructures\SplArrayObject;
+use O2System\Spl\DataStructures\SplArrayObject;
 
 /**
  * Class File
  *
- * @package O2System\Image\Datastructures
+ * @package O2System\Image\DataStructures
  */
 class File extends \O2System\Filesystem\File
 {
@@ -102,6 +102,8 @@ class File extends \O2System\Filesystem\File
      * Gets new image file with new sets of dimension.
      *
      * @param Dimension $dimension New image dimension.
+     *
+     * @return \O2System\Image\File
      */
     public function withDimension(Dimension $dimension)
     {

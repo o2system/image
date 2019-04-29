@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,7 +17,7 @@ namespace O2System\Image;
 
 use O2System\Image\Abstracts\AbstractDriver;
 use O2System\Image\Abstracts\AbstractWatermark;
-use O2System\Image\Datastructures\Config;
+use O2System\Image\DataStructures\Config;
 use O2System\Image\Optimizers\Imageoptim;
 use O2System\Spl\Exceptions\Runtime\FileNotFoundException;
 
@@ -244,7 +244,7 @@ class Manipulation
     /**
      * Manipulation::__construct
      *
-     * @param \O2System\Image\Datastructures\Config $config
+     * @param \O2System\Image\DataStructures\Config $config
      */
     public function __construct(Config $config = null)
     {
@@ -296,7 +296,7 @@ class Manipulation
     // ------------------------------------------------------------------------
 
     /**
-     * AbstractDriver::setDriver
+     * Manipulation::setDriver
      *
      * Manually set image manipulation library driver.
      *
@@ -321,6 +321,7 @@ class Manipulation
      * @param string $imageFilePath Existing image file path.
      *
      * @return static
+     * @throws \O2System\Spl\Exceptions\Runtime\FileNotFoundException
      */
     public function setImageFile($imageFilePath)
     {
@@ -336,6 +337,14 @@ class Manipulation
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Manipulation::setImageUrl
+     *
+     * @param string $imageUrl
+     *
+     * @return static
+     * @throws \O2System\Spl\Exceptions\Runtime\FileNotFoundException
+     */
     public function setImageUrl($imageUrl)
     {
         if (false === ($imageString = file_get_contents($imageUrl))) {
@@ -403,6 +412,8 @@ class Manipulation
      * Flip an image.
      *
      * @param int $axis Image flip axis.
+     *
+     * @return bool
      */
     public function flipImage($axis)
     {

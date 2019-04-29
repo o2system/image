@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the O2System PHP Framework package.
+ * This file is part of the O2System Framework package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -30,7 +30,8 @@ use O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException;
 class ImagemagickDriver extends AbstractDriver
 {
     /**
-     * ImagemagickDriver constructor.
+     * ImagemagickDriver::__construct
+     *
      * @throws \O2System\Spl\Exceptions\Logic\BadFunctionCall\BadPhpExtensionCallException
      */
     public function __construct()
@@ -66,6 +67,7 @@ class ImagemagickDriver extends AbstractDriver
      * @param string $imageString Image string.
      *
      * @return bool
+     * @throws \ImagickException
      */
     public function createFromString($imageString)
     {
@@ -195,6 +197,11 @@ class ImagemagickDriver extends AbstractDriver
 
     // ------------------------------------------------------------------------
 
+    /**
+     * ImagemagickDriver::resizeCrop
+     *
+     * @return bool
+     */
     public function resizeCrop()
     {
         $sourceDimension = $this->sourceImageFile->getDimension();
