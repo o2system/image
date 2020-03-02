@@ -1,4 +1,4 @@
-![alt text](https://www.o2system.id/assets/img/covers/cover-o2system-atom-image.png "O2System Image Atom")
+![alt text](https://repository-images.githubusercontent.com/86801117/bf76a280-5c9f-11ea-9878-bb48b9d6f3bb "O2System Image Atom")
 
 [![Build Status](https://scrutinizer-ci.com/g/o2system/image/badges/build.png?b=master)](https://scrutinizer-ci.com/g/o2system/image/build-status/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/o2system/image/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/o2system/image/?branch=master)
@@ -50,7 +50,7 @@ $manipulation->saveImage( 'path/to/save/images/kawah-putih.jpg' );
 Documentation is available on this repository [wiki](https://github.com/o2system/image/wiki) or visit this repository [github page](https://o2system.github.io/image).
 
 ### Ideas and Suggestions
-Please kindly mail us at [contact@o2system.id](mailto:contact@o2system.id])
+Please kindly mail us at [hello@o2system.id](mailto:hello@o2system.id])
 
 ### Bugs and Issues
 Please kindly submit your [issues at Github](http://github.com/o2system/image/issues) so we can track all the issues along development and send a [pull request](http://github.com/o2system/image/pulls) to this repository.
