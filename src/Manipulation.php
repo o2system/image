@@ -92,6 +92,24 @@ class Manipulation
     const ORIENTATION_LANDSCAPE = 'LANDSCAPE';
 
     /**
+     * Manipulation::ORIENTATION_PORTRAIT
+     *
+     * Landscape image orientation.
+     *
+     * @var string
+     */
+    const ORIENTATION_PORTRAIT = 'PORTRAIT';
+    
+    /**
+     * Manipulation::ORIENTATION_SQUARE
+     *
+     * Landscape image orientation.
+     *
+     * @var string
+     */
+    const ORIENTATION_SQUARE = 'SQUARE';
+
+    /**
      * Manipulation::DIRECTIVE_UP
      *
      * If the target image size is larger than the size of the source image then the image source size
@@ -121,24 +139,6 @@ class Manipulation
      * @var string
      */
     const DIRECTIVE_RATIO = 'RATIO';
-
-    /**
-     * Manipulation::ORIENTATION_PORTRAIT
-     *
-     * Landscape image orientation.
-     *
-     * @var string
-     */
-    const ORIENTATION_PORTRAIT = 'PORTRAIT';
-
-    /**
-     * Manipulation::ORIENTATION_SQUARE
-     *
-     * Landscape image orientation.
-     *
-     * @var string
-     */
-    const ORIENTATION_SQUARE = 'SQUARE';
 
     /**
      * Manipulation::WATERMARK_CENTER

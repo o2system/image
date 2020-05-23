@@ -207,18 +207,6 @@ class ImagemagickDriver extends AbstractDriver
         $sourceDimension = $this->sourceImageFile->getDimension();
         $resampleDimension = $this->resampleImageFile->getDimension();
 
-        //try max width first...
-        $resizeRatio = $resampleDimension->getWidth() / $sourceDimension->getWidth();
-        $resizeWidth = $resampleDimension->getWidth();
-        $resizeHeight = $sourceDimension->getHeight() * $resizeRatio;
-
-        //if that didn't work
-        if ($resizeHeight > $resampleDimension->getHeight()) {
-            $resizeRatio = $resampleDimension->getHeight() / $sourceDimension->getHeight();
-            $resizeHeight = $resampleDimension->getHeight();
-            $resizeWidth = $sourceDimension->getWidth() * $resizeRatio;
-        }
-
         $resampleImageResource =& $this->getResampleImageResource();
 
         if ($resampleDimension->getOrientation() === 'SQUARE') {
@@ -234,57 +222,66 @@ class ImagemagickDriver extends AbstractDriver
             switch ($resampleDimension->getFocus()) {
                 default:
                 case 'CENTER':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_CENTER);
                     $resampleAxis = new Dimension\Axis(
-                        ($sourceDimension->getWidth() / 2) - ($resizeWidth / 2),
-                        ($sourceDimension->getHeight() / 2) - ($resizeHeight / 2)
+                        ($sourceDimension->getWidth() / 2) - ($resampleDimension->getWidth() / 2),
+                        ($sourceDimension->getHeight() / 2) - ($resampleDimension->getHeight() / 2)
                     );
                     break;
                 case 'NORTH':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_NORTH);
                     $resampleAxis = new Dimension\Axis(
-                        ($sourceDimension->getWidth() - $resizeWidth) / 2,
+                        ($sourceDimension->getWidth() / 2) - ($resampleDimension->getWidth() / 2),
                         0
                     );
                     break;
                 case 'NORTHWEST':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_NORTHWEST);
                     $resampleAxis = new Dimension\Axis(
                         0,
                         0
                     );
                     break;
                 case 'NORTHEAST':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_NORTHEAST);
                     $resampleAxis = new Dimension\Axis(
-                        $sourceDimension->getWidth() - $resizeWidth,
+                        $sourceDimension->getWidth() - $resampleDimension->getWidth(),
                         0
                     );
                     break;
                 case 'SOUTH':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_SOUTH);
                     $resampleAxis = new Dimension\Axis(
-                        ($sourceDimension->getWidth() - $resizeWidth) / 2,
-                        $sourceDimension->getHeight() - $resizeHeight
+                        ($sourceDimension->getWidth() / 2) - ($resampleDimension->getWidth() / 2),
+                        $sourceDimension->getHeight() - $resampleDimension->getHeight()
                     );
                     break;
                 case 'SOUTHWEST':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_SOUTHWEST);
                     $resampleAxis = new Dimension\Axis(
                         0,
-                        $sourceDimension->getHeight() - $resizeHeight
+                        $sourceDimension->getHeight() - $resampleDimension->getHeight()
                     );
                     break;
                 case 'SOUTHEAST':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_SOUTHEAST);
                     $resampleAxis = new Dimension\Axis(
-                        $sourceDimension->getWidth() - $resizeWidth,
-                        $sourceDimension->getHeight() - $resizeHeight
+                        $sourceDimension->getWidth() - $resampleDimension->getWidth(),
+                        $sourceDimension->getHeight() - $resampleDimension->getHeight()
                     );
                     break;
                 case 'WEST':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_WEST);
                     $resampleAxis = new Dimension\Axis(
                         0,
-                        ($sourceDimension->getHeight() - $resizeHeight) / 2
+                        ($sourceDimension->getHeight() / 2) - ($resampleDimension->getHeight() / 2)
                     );
                     break;
                 case 'EAST':
+                    $resampleImageResource->setGravity(\Imagick::GRAVITY_EAST);
                     $resampleAxis = new Dimension\Axis(
-                        $sourceDimension->getWidth() - $resizeWidth,
-                        ($sourceDimension->getHeight() - $resizeHeight) / 2
+                        $sourceDimension->getWidth() - $resampleDimension->getWidth(),
+                        ($sourceDimension->getHeight() / 2) - ($resampleDimension->getHeight() / 2)
                     );
                     break;
             }
